@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kyiv 2027 — Стратегія про захист Києва | Тактичний планшет ППО</title>
+  <meta name="description" content="Стратегія про захист міста від ударних дронів і ракет. Увесь Київ — вулиця за вулицею, будинок за будинком. Інтерактивний тактичний симулятор оборони столиці.">
+  <meta name="theme-color" content="#10151b">
+
+  <!-- Typography: Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lato:wght@700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body id="top" data-theme-weather="night">
+
+  <!-- Atmospheric Weather Particle Overlay -->
+  <canvas id="weather-canvas"></canvas>
+
+  <!-- Global SVG Sprites -->
+  <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+    <symbol id="i-telegram" viewBox="0 0 24 24">
+      <path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/>
+    </symbol>
+
+    <symbol id="i-instagram" viewBox="0 0 24 24">
+      <g fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+        <circle cx="12" cy="12" r="4"/>
+        <circle cx="18" cy="6" r="1.2" fill="currentColor" stroke="none"/>
+      </g>
+    </symbol>
+
+    <symbol id="i-tiktok" viewBox="0 0 24 24">
+      <path fill="currentColor" d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64c.29 0 .58.04.85.12V9.33a6.33 6.33 0 0 0-1-.08A6.34 6.34 0 0 0 3 15.6a6.34 6.34 0 0 0 10.82 4.48 6.3 6.3 0 0 0 1.88-4.48V8.78a8.28 8.28 0 0 0 4.89 1.57V6.9a4.86 4.86 0 0 1-1-.21z"/>
+    </symbol>
+
+    <symbol id="i-steam" viewBox="0 0 24 24">
+      <path fill="currentColor" d="M12 2a10 10 0 0 0-9.97 9.17l5.35 2.2a2.98 2.98 0 0 1 1.69-.52c.23 0 .45.03.66.08l2.45-3.56A3.99 3.99 0 0 1 16 6a4 4 0 1 1-3.99 4.31l-3.53 2.5a3 3 0 0 1-.22.56L3.14 11.2A10 10 0 1 0 12 2zm4 6a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-7.07 7.07a1.99 1.99 0 0 0 2.8 1.99 2 2 0 0 0-1.42-3.41c-.5 0-.96.18-1.32.48l1.37.56a1.2 1.2 0 0 1 1.15 1.15c0 .66-.54 1.2-1.2 1.2a1.2 1.2 0 0 1-1.12-.77l-1.26-.52a2 2 0 0 0-.02.32z"/>
+    </symbol>
+  </svg>
+
+  <!-- Topbar Header -->
+  <header class="topbar over-hero">
+    <div class="wrap topbar-in">
+      <a class="brand" href="#top">
+        <img src="https://kyiv2027.com/img/logo.png" alt="Kyiv 2027" width="138" height="22" onerror="this.src='https://kyiv2027.com/img/logo.svg'">
+        <span class="brand-badge">TACTICAL SIM</span>
+      </a>
+
+      <!-- Atmospheric Weather Selector -->
+      <div class="weather-switch" title="Зміна погоди та часу доби у грі">
+        <button type="button" class="weather-btn active" data-weather="night">🌙 Ніч</button>
+        <button type="button" class="weather-btn" data-weather="winter">❄️ Зима</button>
+        <button type="button" class="weather-btn" data-weather="rain">🌧️ Осінь</button>
+      </div>
+
+      <!-- Desktop Navigation Links -->
+      <nav class="links">
+        <a href="#about">Про гру</a>
+        <a href="#simulator" class="nav-highlight">⚡ Тактичний симулятор</a>
+        <a href="#arsenal">Арсенал ППО</a>
+        <a href="#districts">Райони</a>
+        <a href="#news">Новини</a>
+        <a href="#gallery">Галерея</a>
+
+        <!-- Language switcher details popover -->
+        <details class="lang">
+          <summary aria-label="Мова: Українська">
+            <svg aria-hidden="true" viewBox="0 0 24 24">
+              <g fill="none" stroke="currentColor" stroke-width="1.8">
+                <circle cx="12" cy="12" r="9.2"></circle>
+                <path d="M2.8 12h18.4M12 2.8c2.6 2.6 3.9 5.6 3.9 9.2s-1.3 6.6-3.9 9.2c-2.6-2.6-3.9-5.6-3.9-9.2s1.3-6.6 3.9-9.2z"></path>
+              </g>
+            </svg>
+            UA
+          </summary>
+          <ul>
+            <li><a href="./" aria-current="page">UA</a></li>
+            <li><a href="en/">EN</a></li>
+            <li><a href="de/">DE</a></li>
+            <li><a href="fr/">FR</a></li>
+            <li><a href="zh/">CN</a></li>
+            <li><a href="ja/">JP</a></li>
+          </ul>
+        </details>
+
+        <!-- Ammo / Donate button with heartbeat -->
+        <a class="bar-donate" href="#simulator" title="Задонатити патрони / Оборона міста">
+          <svg aria-hidden="true" viewBox="0 0 24 24">
+            <path fill="currentColor" d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 4.5 6.7 4.5c2.1 0 3.6 1.2 4.3 2.5h2c.7-1.3 2.2-2.5 4.3-2.5 3.7 0 5.8 3.9 4.3 7.3C19.5 16.4 12 21 12 21z"></path>
+          </svg>
+        </a>
+      </nav>
+
+      <!-- Mobile quick donate button -->
+      <a class="bar-donate bar-donate-m" href="#simulator">
+        <svg aria-hidden="true" viewBox="0 0 24 24">
+          <path fill="currentColor" d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 4.5 6.7 4.5c2.1 0 3.6 1.2 4.3 2.5h2c.7-1.3 2.2-2.5 4.3-2.5 3.7 0 5.8 3.9 4.3 7.3C19.5 16.4 12 21 12 21z"></path>
+        </svg>
+      </a>
+
+      <!-- Hamburger button -->
+      <button class="burger" aria-label="Відкрити меню" aria-expanded="false" aria-controls="mnav">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Mobile Drawer -->
+  <nav class="mnav" id="mnav" hidden>
+    <div class="wrap">
+      <div class="mnav-links">
+        <a href="#about">Про гру</a>
+        <a href="#simulator" style="color: var(--yellow);">⚡ Тактичний симулятор</a>
+        <a href="#arsenal">Арсенал ППО</a>
+        <a href="#districts">Райони та ТЕЦ</a>
+        <a href="#news">Новини розробки</a>
+        <a href="#gallery">Галерея міста</a>
+      </div>
+
+      <div class="mnav-langs">
+        <a href="./" aria-current="page">UA</a>
+        <a href="en/">EN</a>
+        <a href="de/">DE</a>
+        <a href="fr/">FR</a>
+      </div>
+
+      <div class="mnav-socials">
+        <a class="social donate-btn" href="#simulator">Задонатити патрони</a>
+        <a class="social" href="https://t.me/game_kyiv2027" target="_blank" rel="noopener">
+          <svg class="icon"><use href="#i-telegram"></use></svg>Telegram
+        </a>
+        <a class="social" href="https://www.tiktok.com/@mozart.glas" target="_blank" rel="noopener">
+          <svg class="icon"><use href="#i-tiktok"></use></svg>TikTok
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero" aria-label="Головна панорама гри">
+    <!-- Carousel slides -->
+    <div class="hero-slides" data-interval="6500">
+      <figure class="slide is-active">
+        <img class="hero-img" src="https://kyiv2027.com/img/slider/olimp.jpg" alt="Центр Києва в грі з висоти: НСК «Олімпійський», Дніпро й Лівий берег">
+        <figcaption>НСК «Олімпійський» і центр міста</figcaption>
+      </figure>
+
+      <figure class="slide">
+        <img class="hero-img" src="https://kyiv2027.com/img/slider/winter.jpg" alt="Київ у грі взимку: засніжений житловий масив із кольоровими багатоповерхівками">
+        <figcaption>Київ узимку</figcaption>
+      </figure>
+
+      <figure class="slide">
+        <img class="hero-img" src="https://kyiv2027.com/img/slider/autumn.jpg" alt="Осінній Київ у грі: парки на схилах Дніпра, стадіон і центр міста">
+        <figcaption>Осінь над Дніпром</figcaption>
+      </figure>
+
+      <figure class="slide">
+        <img class="hero-img" src="https://kyiv2027.com/img/slider/drones.jpg" alt="Ударні дрони летять над Дніпром і приватною забудовою">
+        <figcaption>Шахеди над Дніпром</figcaption>
+      </figure>
+
+      <figure class="slide">
+        <img class="hero-img" src="https://kyiv2027.com/img/slider/defense.jpg" alt="Протиповітряна оборона збиває дрони над центром Києва">
+        <figcaption>ППО збиває шахеди</figcaption>
+      </figure>
+
+      <figure class="slide">
+        <img class="hero-img" src="https://kyiv2027.com/img/slider/maidan.jpg" alt="Центр Києва в грі: Майдан Незалежності й навколишні квартали">
+        <figcaption>Майдан Незалежності</figcaption>
+      </figure>
+    </div>
+
+    <div class="hero-shade"></div>
+
+    <div class="wrap hero-text">
+      <div class="kicker">
+        <span class="badge"><span class="pulse-dot"></span> Гра в розробці • Unreal Engine 5</span>
+      </div>
+
+      <div class="hero-logo-wrap">
+        <h1 class="hero-logo-text">KYIV <span class="hero-logo-year">2027</span></h1>
+      </div>
+
+      <p class="lead">
+        Стратегія про захист міста від ударних дронів і ракет. Увесь Київ — вулиця за вулицею, будинок за будинком.
+      </p>
+
+      <div class="socials">
+        <a class="social btn-sim-launch" href="#simulator">
+          ⚡ Запустити Тактичний Симулятор
+        </a>
+        <a class="social donate-btn" href="#simulator">
+          Задонатити патрони
+        </a>
+        <a class="social" href="https://t.me/game_kyiv2027" target="_blank" rel="noopener">
+          <svg class="icon"><use href="#i-telegram"></use></svg>Telegram
+        </a>
+        <a class="social" href="https://www.tiktok.com/@mozart.glas" target="_blank" rel="noopener">
+          <svg class="icon"><use href="#i-tiktok"></use></svg>TikTok
+        </a>
+        <a class="social" href="https://www.instagram.com/alexwebjoie/" target="_blank" rel="noopener">
+          <svg class="icon"><use href="#i-instagram"></use></svg>Instagram
+        </a>
+        <span class="social soon" title="Сторінка в Steam з’явиться ближче до релізу">
+          <svg class="icon"><use href="#i-steam"></use></svg>Steam — буде реліз
+        </span>
+      </div>
+    </div>
+
+    <!-- Carousel Controls -->
+    <div class="wrap slider-ui">
+      <div class="slider-ctrl">
+        <button class="sl-btn sl-prev" aria-label="Попередній слайд">
+          <svg aria-hidden="true" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="M14.5 5.5 8 12l6.5 6.5"/></svg>
+        </button>
+        <div class="sl-dots"></div>
+        <button class="sl-btn sl-next" aria-label="Наступний слайд">
+          <svg aria-hidden="true" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="M9.5 5.5 16 12l-6.5 6.5"/></svg>
+        </button>
+        <button class="sl-btn sl-play" aria-label="Пауза">
+          <svg class="i-pause" aria-hidden="true" viewBox="0 0 24 24"><path fill="currentColor" d="M7 5h3.2v14H7zM13.8 5H17v14h-3.2z"/></svg>
+          <svg class="i-play" aria-hidden="true" viewBox="0 0 24 24"><polygon fill="currentColor" points="8,5 19,12 8,19"/></svg>
+        </button>
+      </div>
+      <p class="slide-cap" aria-live="polite">— НСК «Олімпійський» і центр міста</p>
+    </div>
+  </section>
+
+  <!-- Main Content Sections -->
+  <main>
+    <!-- UNIQUE SECTION: TACTICAL AIR DEFENSE SIMULATOR -->
+    <section class="sim-section" id="simulator">
+      <div class="wrap">
+        <h2>Тактичний планшет ППО Києва</h2>
+        <p style="color: var(--muted); margin-bottom: 20px;">
+          Інтерактивна тактична симуляція протиповітряної оборони столиці в реальному часі. Керуйте мобільними вогневими групами (МВГ), зенітними установками Gepard і комплексами Patriot для відбиття хвиль ворожих шахедів та ракет від критичної інфраструктури й мостів.
+        </p>
+
+        <div class="sim-container">
+          <!-- Simulator HUD Header -->
+          <div class="sim-header">
+            <div class="sim-title-group">
+              <h3>
+                <span class="pulse-dot"></span>
+                СЕКТОР НЕБА: КИЇВ • АКТИВНА СИМУЛЯЦІЯ
+              </h3>
+              <p class="sim-subtitle">Дніпро, мости, ТЕЦ-5, ТЕЦ-6, урядовий квартал під захистом</p>
+            </div>
+
+            <div class="sim-telemetry-hud">
+              <div class="hud-item">
+                <span class="hud-label">Рахунок захисту</span>
+                <span class="hud-val highlight" id="sim-score">0</span>
+              </div>
+              <div class="hud-item">
+                <span class="hud-label">Збито цілей</span>
+                <span class="hud-val" id="sim-intercepted" style="color: #00e676;">0</span>
+              </div>
+              <div class="hud-item">
+                <span class="hud-label">Пропущено</span>
+                <span class="hud-val" id="sim-missed" style="color: #ff5252;">0</span>
+              </div>
+              <div class="hud-item">
+                <span class="hud-label">Енергомережа Києва</span>
+                <span class="hud-val" id="sim-grid-text">100%</span>
+                <div class="grid-bar-wrap">
+                  <div class="grid-bar-fill" id="sim-grid-bar"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Radar Canvas Display -->
+          <div class="sim-canvas-wrap">
+            <canvas id="defense-radar-canvas"></canvas>
+          </div>
+
+          <!-- Simulator Footer Controls -->
+          <div class="sim-footer-controls">
+            <div class="sim-weapon-selector">
+              <span style="font-size: 13px; color: #98a3ae; align-self: center; margin-right: 4px;">Зброя:</span>
+              <button type="button" class="w-btn active" data-weapon="mvg">МВГ (Кулемети 12.7мм)</button>
+              <button type="button" class="w-btn" data-weapon="gepard">Gepard 35мм</button>
+              <button type="button" class="w-btn" data-weapon="patriot">ЗРК Patriot</button>
+            </div>
+
+            <div class="sim-action-btns">
+              <button type="button" class="sim-ctrl-btn" id="sim-audio-toggle">
+                <span class="btn-text">Звук: Вимкнено</span>
+              </button>
+              <button type="button" class="sim-ctrl-btn active" id="sim-play-toggle">
+                <span class="btn-text">Пуск симулятора</span>
+              </button>
+              <button type="button" class="sim-ctrl-btn" id="sim-reset">
+                Скинути
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- UNIQUE SECTION: ARSENAL & BLUEPRINT INSPECTOR -->
+    <section class="arsenal-section" id="arsenal">
+      <div class="wrap">
+        <h2>Арсенал ППО столиці</h2>
+        <p style="color: var(--muted); margin-bottom: 24px;">
+          Оберіть бойову систему зі списку, щоб переглянути тактико-технічні характеристики у грі.
+        </p>
+
+        <div class="arsenal-grid">
+          <!-- Weapon Blueprint Card List -->
+          <div class="weapon-cards-list">
+            <div class="weapon-blueprint-card selected" data-weapon-key="mvg">
+              <h4>МВГ на пікапі 4x4</h4>
+              <p>Мобільні групи з прожекторами й спареними кулеметами Browning/ДШК.</p>
+            </div>
+
+            <div class="weapon-blueprint-card" data-weapon-key="gepard">
+              <h4>Gepard 1A2</h4>
+              <p>Зенітна самохідна установка з радаром наведення і двома 35-мм гарматами.</p>
+            </div>
+
+            <div class="weapon-blueprint-card" data-weapon-key="patriot">
+              <h4>MIM-104 Patriot PAC-3</h4>
+              <p>Комплекс протиракетної оборони для знищення балістичних і крилатих загроз.</p>
+            </div>
+
+            <div class="weapon-blueprint-card" data-weapon-key="zvuk">
+              <h4>Акустична мережа «ЗВУК»</h4>
+              <p>Мережа мікрофонних сенсорів на дахах Києва для раннього виявлення дронів.</p>
+            </div>
+          </div>
+
+          <!-- Interactive Blueprint Display Pane -->
+          <div class="blueprint-inspector" id="blueprint-inspector">
+            <div class="bp-header">
+              <span class="bp-tag">[ ТЕХНІЧНА СПЕЦИФІКАЦІЯ У ГРІ ]</span>
+              <h4>Мобільна Вогнева Група (МВГ)</h4>
+              <p class="bp-sub">Швидкісний пікап 4x4 • Спарений кулемет 12.7 мм / ДШК • Лазерний далекомір</p>
+            </div>
+            <div class="bp-grid">
+              <div class="bp-stat"><span>Бойовий радіус:</span> <b>2 500 м</b></div>
+              <div class="bp-stat"><span>Темп вогню:</span> <b>600 постр/хв</b></div>
+              <div class="bp-stat"><span>Готовність:</span> <b>Миттєва (патрулювання)</b></div>
+              <div class="bp-stat"><span>Мобільність:</span> <b>110 км/год пересування вулицями</b></div>
+            </div>
+            <p class="bp-role"><strong>Тактична роль:</strong> Перехоплення ударних дронів «Шахед-136» на малих висотах, захист русла Дніпра та мостів.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- UNIQUE SECTION: DISTRICTS & ENERGY GRID TELEMETRY -->
+    <section class="districts-section" id="districts">
+      <div class="wrap">
+        <h2>Моніторинг районів і критичної інфраструктури</h2>
+        <p style="color: var(--muted);">
+          Усі райони Києва змодельовано у масштабі 1:1. Влучання впливають на постачання світла, рух транспорту та роботу мостів.
+        </p>
+
+        <div class="district-cards-grid">
+          <div class="district-card">
+            <div class="district-card-header">
+              <h4>Печерськ & Центр</h4>
+              <span class="status-badge online">ППО АКТИВНЕ</span>
+            </div>
+            <div class="district-meta">
+              <span>Будівель: <b>24 500</b></span>
+              <span>Енергопостачання: <b>100%</b></span>
+              <span>Прикриття: Patriot + Gepard</span>
+            </div>
+          </div>
+
+          <div class="district-card">
+            <div class="district-card-header">
+              <h4>Поділ & Оболонь</h4>
+              <span class="status-badge online">ППО АКТИВНЕ</span>
+            </div>
+            <div class="district-meta">
+              <span>Будівель: <b>38 200</b></span>
+              <span>Енергопостачання: <b>100%</b></span>
+              <span>Прикриття: МВГ + ЗУ-23-2</span>
+            </div>
+          </div>
+
+          <div class="district-card">
+            <div class="district-card-header">
+              <h4>Лівий берег (Дарниця, Троєщина)</h4>
+              <span class="status-badge alert">ЧЕРГУВАННЯ</span>
+            </div>
+            <div class="district-meta">
+              <span>Будівель: <b>92 000</b></span>
+              <span>ТЕЦ-6: <b>Під захистом</b></span>
+              <span>Прикриття: Мобільні патрулі</span>
+            </div>
+          </div>
+
+          <div class="district-card">
+            <div class="district-card-header">
+              <h4>Голосіїв & ТЕЦ-5</h4>
+              <span class="status-badge online">ППО АКТИВНЕ</span>
+            </div>
+            <div class="district-meta">
+              <span>Будівель: <b>42 100</b></span>
+              <span>Південний міст: <b>Відкрито</b></span>
+              <span>Прикриття: Gepard + Радар</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ABOUT SECTION -->
+    <section class="about" id="about">
+      <div class="wrap">
+        <h2>Про гру</h2>
+        <p>
+          Ви відповідаєте за протиповітряну оборону Києва. Хвилі шахедів і ракет летять до мостів, електростанцій і житлових кварталів. Треба вирішити, де поставити мобільні вогневі групи й зенітні комплекси, як розподілити ракети й гроші, кого рятувати першим.
+        </p>
+        <p>
+          Місто справжнє: кожна будівля, вулиця й міст узяті з відкритих карт. Влучання лишають наслідки — будинки руйнуються по частинах, уламки перекривають дороги, рух машин змінюється.
+        </p>
+
+        <!-- Scale Facts Grid -->
+        <div class="facts">
+          <div class="fact">
+            <b>236 000</b>
+            <span>будівель Києва з OpenStreetMap, з типовими серіями, епохами й дахами</span>
+          </div>
+          <div class="fact">
+            <b>1 : 1</b>
+            <span>усе місто від Пущі до Конча-Заспи, з рельєфом схилів і Дніпра</span>
+          </div>
+          <div class="fact">
+            <b>1 925 км²</b>
+            <span>площа ігрової карти</span>
+          </div>
+          <div class="fact">
+            <b>80 000</b>
+            <span>автомобілів на вулицях, що їздять за світлофорами</span>
+          </div>
+          <div class="fact">
+            <b>4 млн</b>
+            <span>дерев у парках, лісах і дворах</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- DEVELOPMENT NEWS TIMELINE -->
+    <section class="news" id="news">
+      <div class="wrap">
+        <div class="news-header-wrap">
+          <h2>Новини розробки</h2>
+          <div class="news-filters">
+            <button type="button" class="n-filter-btn active" data-news-filter="all">Всі новини</button>
+            <button type="button" class="n-filter-btn" data-news-filter="ppo">ППО</button>
+            <button type="button" class="n-filter-btn" data-news-filter="city">Місто</button>
+            <button type="button" class="n-filter-btn" data-news-filter="engine">Двигун</button>
+          </div>
+        </div>
+
+        <article data-tag="ppo">
+          <time datetime="2026-11-18">18 листопада 2026</time>
+          <div>
+            <h3><a href="#simulator">Тактичний планшет, розв’язки та нова техніка</a></h3>
+            <p>У грі з’явився тактичний планшет: камера злітає над містом, хмари зникають, на мапі видно сектори, радіуси вогню ППО і ворожі цілі. Великі розв’язки тепер доводимо вручну — першою виправили розв’язку біля Південного мосту. А в меню будівництва про кожну машину можна дізнатися все: проти чого вона, дальність, боєзапас і слабкі місця.</p>
+            <a class="more" href="#simulator">Відкрити планшет <span>→</span></a>
+          </div>
+        </article>
+
+        <article data-tag="ppo">
+          <time datetime="2026-11-17">17 листопада 2026</time>
+          <div>
+            <h3><a href="#news">Шахеди, ППО, енергосистема і пори року</a></h3>
+            <p>Над Києвом літають «Мопеди» та ракети за справжньою фізикою польоту, ЗУ-23-2 збиває їх трасерами, у районах можуть зникати світло й вода, а місто ожило: пішоходи, машини з колесами, сніг узимку й жовте листя восени.</p>
+            <a class="more" href="#news">Читати детальніше <span>→</span></a>
+          </div>
+        </article>
+
+        <article data-tag="city">
+          <time datetime="2026-11-15">15 листопада 2026</time>
+          <div>
+            <h3><a href="#news">День і ніч, ліхтарі та вибір мера</a></h3>
+            <p>Сонце й Місяць рухаються за реальною астрономією Києва, вздовж доріг засвітилися ліхтарі, у вікнах — світло, у машин — фари. А перед новою грою тепер треба обрати мера.</p>
+            <a class="more" href="#news">Читати детальніше <span>→</span></a>
+          </div>
+        </article>
+
+        <article data-tag="city">
+          <time datetime="2026-11-15">15 листопада 2026</time>
+          <div>
+            <h3><a href="#news">Сайт гри і розмітка на перехрестях</a></h3>
+            <p>Запустили цей сайт. На перехрестях головних вулиць з’явилися пішохідні «зебри» і стоп-лінії — понад 100 тисяч смуг розмітки по всьому місту.</p>
+            <a class="more" href="#news">Читати детальніше <span>→</span></a>
+          </div>
+        </article>
+
+        <article data-tag="city">
+          <time datetime="2026-11-15">15 листопада 2026</time>
+          <div>
+            <h3><a href="#news">Майдан Незалежності став схожим на справжній</a></h3>
+            <p>Скляний купол «Глобуса» і скляний дах торгового центру стоять на бруківці, фонтани отримали гранітні борти й струмені, готель «Козацький» стоїть клином між вулицями.</p>
+            <a class="more" href="#news">Читати детальніше <span>→</span></a>
+          </div>
+        </article>
+
+        <article data-tag="city">
+          <time datetime="2026-11-14">14 листопада 2026</time>
+          <div>
+            <h3><a href="#news">Пам’ятки і київська архітектура</a></h3>
+            <p>НСК «Олімпійський» змодельовано вручну, у місті з’явилися «Батьківщина-Мати» і Монумент Незалежності, а будинки отримали київський вигляд.</p>
+            <a class="more" href="#news">Читати детальніше <span>→</span></a>
+          </div>
+        </article>
+
+        <article data-tag="engine">
+          <time datetime="2026-11-13">13 листопада 2026</time>
+          <div>
+            <h3><a href="#news">Перехід на Unreal Engine 5</a></h3>
+            <p>Гру повністю перенесено на Unreal Engine 5: живе освітлення, тіні від кожного будинку, усе місто в одному кадрі.</p>
+            <a class="more" href="#news">Читати детальніше <span>→</span></a>
+          </div>
+        </article>
+
+        <article data-tag="city">
+          <time datetime="2026-11-06">6 листопада 2026</time>
+          <div>
+            <h3><a href="#news">Початок розробки</a></h3>
+            <p>Увесь Київ зібрано з відкритих карт OpenStreetMap і супутникового рельєфу Copernicus: будинки, дороги, мости, парки, 80 тисяч автомобілів і будівлі, що руйнуються від влучань.</p>
+            <a class="more" href="#news">Читати детальніше <span>→</span></a>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- GALLERY SECTION -->
+    <section class="gallery-section" id="gallery">
+      <div class="wrap">
+        <h2>Як виглядає місто</h2>
+        <div class="gallery">
+          <figure class="wide">
+            <img src="https://kyiv2027.com/img/gallery/olimp.jpg" alt="НСК «Олімпійський» у грі Kyiv 2027">
+            <figcaption>НСК «Олімпійський»</figcaption>
+          </figure>
+
+          <figure>
+            <img src="https://kyiv2027.com/img/gallery/khreshchatyk.jpg" alt="Хрещатик у грі Kyiv 2027">
+            <figcaption>Хрещатик</figcaption>
+          </figure>
+
+          <figure>
+            <img src="https://kyiv2027.com/img/gallery/maidan.jpg" alt="Майдан Незалежності у грі Kyiv 2027">
+            <figcaption>Майдан Незалежності</figcaption>
+          </figure>
+
+          <figure>
+            <img src="https://kyiv2027.com/img/gallery/podil.jpg" alt="Поділ у грі Kyiv 2027">
+            <figcaption>Поділ</figcaption>
+          </figure>
+
+          <figure>
+            <img src="https://kyiv2027.com/img/gallery/monument.jpg" alt="«Батьківщина-Мати» у грі Kyiv 2027">
+            <figcaption>«Батьківщина-Мати»</figcaption>
+          </figure>
+
+          <figure class="wide">
+            <img src="https://kyiv2027.com/img/gallery/leftbank.jpg" alt="Лівий берег у грі Kyiv 2027">
+            <figcaption>Лівий берег</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <!-- ROADMAP SECTION -->
+    <section class="roadmap" id="roadmap">
+      <div class="wrap">
+        <h2>Етапи розробки</h2>
+        <ol>
+          <li class="now">
+            <b>Прототип</b>
+            <span>Усе місто, руйнування будівель, перша хвиля дронів. Зараз тут: <em>місто готове, далі — хвилі шахедів.</em></span>
+          </li>
+          <li>
+            <b>Перша гральна версія</b>
+            <span>Протиповітряна оборона, економіка, дослідження нових засобів захисту.</span>
+          </li>
+          <li>
+            <b>Ранній доступ</b>
+            <span>Гра відкривається для перших гравців.</span>
+          </li>
+        </ol>
+      </div>
+    </section>
+  </main>
+
+  <!-- Gallery Lightbox Modal -->
+  <div class="modal-lightbox" id="gallery-lightbox" hidden>
+    <div class="lightbox-content">
+      <button type="button" class="lightbox-close" id="lightbox-close" aria-label="Закрити">&times;</button>
+      <img id="lightbox-img" src="" alt="">
+      <figcaption id="lightbox-caption"></figcaption>
+    </div>
+  </div>
+
+  <!-- Credits & Footer -->
+  <footer class="credits">
+    <div class="wrap">
+      <div class="socials">
+        <a class="social donate-btn" href="#simulator">Задонатити патрони</a>
+        <a class="social" href="https://t.me/game_kyiv2027" target="_blank" rel="noopener">
+          <svg class="icon"><use href="#i-telegram"></use></svg>Telegram
+        </a>
+        <a class="social" href="https://www.tiktok.com/@mozart.glas" target="_blank" rel="noopener">
+          <svg class="icon"><use href="#i-tiktok"></use></svg>TikTok
+        </a>
+        <a class="social" href="https://www.instagram.com/alexwebjoie/" target="_blank" rel="noopener">
+          <svg class="icon"><use href="#i-instagram"></use></svg>Instagram
+        </a>
+        <span class="social soon">
+          <svg class="icon"><use href="#i-steam"></use></svg>Steam — буде реліз
+        </span>
+      </div>
+
+      <p>
+        <a href="https://kyiv2027.com/oferta/">Публічна оферта</a> •
+        Контакти: <a href="mailto:info@joie.com.ua">info@joie.com.ua</a>
+      </p>
+
+      <p>
+        Kyiv 2027 — незалежний проєкт. Гра про оборону й порятунок міста.
+      </p>
+
+      <p>
+        Карта: © учасники <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>, ліцензія ODbL.
+        Рельєф: Copernicus WorldDEM-30 © DLR e.V. 2010–2014 та © Airbus Defence and Space GmbH 2014–2018, надано за програмою COPERNICUS Європейського Союзу та ESA.
+      </p>
+
+      <p>
+        3D-моделі: 38 робіт авторів Sketchfab (CC BY 4.0), музика, звуки — <a href="https://kyiv2027.com/credits/">усі автори</a>.
+      </p>
+
+      <p>
+        Розробка проєкту: <a href="https://joie.com.ua/en/" target="_blank" rel="noopener" class="joie-badge">joie.com.ua</a>
+      </p>
+    </div>
+  </footer>
+
+  <!-- Floating Back to Top Button -->
+  <button class="to-top" aria-label="Вгору">
+    <svg aria-hidden="true" viewBox="0 0 24 24">
+      <path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M12 19V5M5 12l7-7 7 7"/>
+    </svg>
+  </button>
+
+  <!-- Interactive Scripts -->
+  <script src="game.js"></script>
+  <script src="site.js"></script>
+</body>
+</html>
