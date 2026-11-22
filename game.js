@@ -1,12 +1,15 @@
 /**
  * Kyiv 2027: Tactical Air Defense Simulator
  * High-performance canvas simulation of Kyiv airspace defense.
- * Cyber-Tactical edition:
+ * Fully interactive, responsive, and action-packed edition:
  * - Real geography simulation (Dnipro river, bridges, critical energy plants)
+ * - Instant responsive controls: clicking canvas starts game & fires all in-range batteries
+ * - Visual target ping rings & reticle on click
  * - 360° Rotating Radar Sweep Line with phosphor persistence
  * - Multiple defense layers: Mobile Fire Groups (МВГ), Gepard 35mm, Patriot PAC-3
  * - Flak shockwaves, ballistic lead prediction, incandescent tracer rounds
  * - Synthesized Web Audio sound effects (radar ping, gunfire, flak explosion, missile launch)
+ * - Game Over / Grid Restored state handling
  */
 
 class KyivDefenseSimulator {
@@ -17,7 +20,7 @@ class KyivDefenseSimulator {
 
     // Simulation state
     this.isRunning = false;
-    this.isMuted = true;
+    this.isMuted = false; // Enabled on user interaction
     this.score = 0;
     this.interceptedCount = 0;
     this.missedCount = 0;
@@ -26,19 +29,20 @@ class KyivDefenseSimulator {
     this.speedMultiplier = 1;
     this.wave = 1;
     this.spawnTimer = 0;
-    this.radarAngle = 0; // 360° sweep line angle
-    this.themeMode = 'cyan'; // 'cyan', 'flir', 'amber', 'stealth'
+    this.radarAngle = 0;
+    this.themeMode = 'cyan';
     this.themeColors = {
-      cyan: { sweep: '#00f0ff', line: 'rgba(0, 240, 255, 0.14)', text: '#cbd5e1' },
-      flir: { sweep: '#22c55e', line: 'rgba(34, 197, 94, 0.18)', text: '#86efac' },
-      amber: { sweep: '#f59e0b', line: 'rgba(245, 158, 11, 0.18)', text: '#fde68a' },
-      stealth: { sweep: '#e2e8f0', line: 'rgba(148, 163, 184, 0.14)', text: '#94a3b8' }
+      cyan: { sweep: '#00f0ff', line: 'rgba(0, 240, 255, 0.16)', text: '#cbd5e1' },
+      flir: { sweep: '#22c55e', line: 'rgba(34, 197, 94, 0.22)', text: '#86efac' },
+      amber: { sweep: '#f59e0b', line: 'rgba(245, 158, 11, 0.22)', text: '#fde68a' },
+      stealth: { sweep: '#e2e8f0', line: 'rgba(148, 163, 184, 0.16)', text: '#94a3b8' }
     };
 
     // Mouse / Target Reticle
     this.mouseX = 0;
     this.mouseY = 0;
     this.isHovering = false;
+    this.clickPings = [];
 
     // Entities
     this.threats = [];
@@ -49,7 +53,7 @@ class KyivDefenseSimulator {
     this.batteries = [];
     this.infrastructure = [];
 
-    // Synthesized Audio
+    // Audio setup
     this.audioCtx = null;
     this.setupAudio();
 
@@ -65,6 +69,12 @@ class KyivDefenseSimulator {
     this.lastTime = performance.now();
     this.animate = this.animate.bind(this);
     requestAnimationFrame(this.animate);
+  }
+
+  setTheme(mode) {
+    if (this.themeColors[mode]) {
+      this.themeMode = mode;
+    }
   }
 
   setupAudio() {
@@ -117,7 +127,7 @@ class KyivDefenseSimulator {
       filter.type = 'bandpass';
       filter.frequency.value = 850;
       const gain = this.audioCtx.createGain();
-      gain.gain.value = 0.14;
+      gain.gain.value = 0.15;
       noise.connect(filter);
       filter.connect(gain);
       gain.connect(this.audioCtx.destination);
@@ -142,7 +152,7 @@ class KyivDefenseSimulator {
       filter.type = 'lowpass';
       filter.frequency.value = large ? 180 : 340;
       const gain = this.audioCtx.createGain();
-      gain.gain.value = large ? 0.32 : 0.16;
+      gain.gain.value = large ? 0.35 : 0.18;
       noise.connect(filter);
       filter.connect(gain);
       gain.connect(this.audioCtx.destination);
@@ -159,19 +169,13 @@ class KyivDefenseSimulator {
       osc.type = 'sawtooth';
       osc.frequency.setValueAtTime(260, this.audioCtx.currentTime);
       osc.frequency.exponentialRampToValueAtTime(1500, this.audioCtx.currentTime + 0.38);
-      gain.gain.setValueAtTime(0.14, this.audioCtx.currentTime);
+      gain.gain.setValueAtTime(0.15, this.audioCtx.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.001, this.audioCtx.currentTime + 0.38);
       osc.connect(gain);
       gain.connect(this.audioCtx.destination);
       osc.start();
       osc.stop(this.audioCtx.currentTime + 0.38);
     } catch (e) {}
-  }
-
-  setTheme(mode) {
-    if (this.themeColors[mode]) {
-      this.themeMode = mode;
-    }
   }
 
   resize() {
@@ -207,8 +211,8 @@ class KyivDefenseSimulator {
         type: 'mvg',
         x: w * 0.38,
         y: h * 0.26,
-        range: 160,
-        rate: 0.15,
+        range: 170,
+        rate: 0.14,
         lastFire: 0,
         ammo: 120,
         angle: 0
@@ -219,7 +223,7 @@ class KyivDefenseSimulator {
         type: 'gepard',
         x: w * 0.42,
         y: h * 0.38,
-        range: 210,
+        range: 220,
         rate: 0.08,
         lastFire: 0,
         ammo: 240,
@@ -231,8 +235,8 @@ class KyivDefenseSimulator {
         type: 'patriot',
         x: w * 0.46,
         y: h * 0.54,
-        range: 350,
-        rate: 1.8,
+        range: 360,
+        rate: 1.6,
         lastFire: 0,
         ammo: 16,
         angle: 0
@@ -243,8 +247,8 @@ class KyivDefenseSimulator {
         type: 'mvg',
         x: w * 0.62,
         y: h * 0.46,
-        range: 160,
-        rate: 0.15,
+        range: 170,
+        rate: 0.14,
         lastFire: 0,
         ammo: 120,
         angle: 0
@@ -255,7 +259,7 @@ class KyivDefenseSimulator {
         type: 'gepard',
         x: w * 0.52,
         y: h * 0.72,
-        range: 210,
+        range: 220,
         rate: 0.08,
         lastFire: 0,
         ammo: 240,
@@ -288,7 +292,17 @@ class KyivDefenseSimulator {
       const clickX = e.clientX - rect.left;
       const clickY = e.clientY - rect.top;
 
+      // Auto-start simulation on first click if paused!
+      if (!this.isRunning) {
+        this.startGame();
+      }
+
       this.resumeAudio();
+
+      // Visual click ping
+      this.clickPings.push({ x: clickX, y: clickY, radius: 2, maxRadius: 36, alpha: 1 });
+
+      // Direct manual fire
       this.manualTarget(clickX, clickY);
     });
 
@@ -309,7 +323,7 @@ class KyivDefenseSimulator {
         this.isMuted = !this.isMuted;
         audioBtn.classList.toggle('muted', this.isMuted);
         const textSpan = audioBtn.querySelector('.btn-text');
-        if (textSpan) textSpan.textContent = this.isMuted ? '🔊 Звук: Вимкнено' : '🔊 Звук: Увімкнено';
+        if (textSpan) textSpan.textContent = this.isMuted ? '🔇 Звук: Вимкнено' : '🔊 Звук: Увімкнено';
         if (!this.isMuted) {
           this.resumeAudio();
           this.playTone(880, 'sine', 0.15, 0.1);
@@ -321,10 +335,11 @@ class KyivDefenseSimulator {
     const playBtn = document.getElementById('sim-play-toggle');
     if (playBtn) {
       playBtn.addEventListener('click', () => {
-        this.isRunning = !this.isRunning;
-        playBtn.classList.toggle('active', this.isRunning);
-        const textSpan = playBtn.querySelector('.btn-text');
-        if (textSpan) textSpan.textContent = this.isRunning ? '⏸ Пауза' : '▶ Пуск симулятора';
+        if (this.isRunning) {
+          this.pauseGame();
+        } else {
+          this.startGame();
+        }
       });
     }
 
@@ -337,9 +352,35 @@ class KyivDefenseSimulator {
     }
   }
 
+  startGame() {
+    this.isRunning = true;
+    const playBtn = document.getElementById('sim-play-toggle');
+    if (playBtn) {
+      playBtn.classList.add('active');
+      const textSpan = playBtn.querySelector('.btn-text');
+      if (textSpan) textSpan.textContent = '⏸ Пауза';
+    }
+
+    // Spawn 2 initial threats immediately so action starts at once
+    if (this.threats.length === 0) {
+      this.spawnThreat();
+      setTimeout(() => this.spawnThreat(), 600);
+    }
+  }
+
+  pauseGame() {
+    this.isRunning = false;
+    const playBtn = document.getElementById('sim-play-toggle');
+    if (playBtn) {
+      playBtn.classList.remove('active');
+      const textSpan = playBtn.querySelector('.btn-text');
+      if (textSpan) textSpan.textContent = '▶ Пуск симулятора';
+    }
+  }
+
   manualTarget(x, y) {
     let target = null;
-    let minDist = 45;
+    let minDist = 50;
     for (const t of this.threats) {
       const d = Math.hypot(t.x - x, t.y - y);
       if (d < minDist) {
@@ -348,30 +389,32 @@ class KyivDefenseSimulator {
       }
     }
 
-    let bestBattery = null;
-    let bestDist = Infinity;
+    // Fire all eligible batteries of the selected type in range
+    let firedAny = false;
     for (const b of this.batteries) {
       if (b.type === this.selectedWeapon || this.selectedWeapon === 'all') {
         const d = Math.hypot(b.x - x, b.y - y);
-        if (d < b.range * 1.35 && d < bestDist) {
-          bestDist = d;
-          bestBattery = b;
+        if (d < b.range * 1.4) {
+          this.fireBatteryAt(b, x, y, target);
+          firedAny = true;
         }
       }
     }
 
-    if (!bestBattery) {
+    // If none in range, fire the closest battery
+    if (!firedAny) {
+      let closestBattery = null;
+      let closestDist = Infinity;
       for (const b of this.batteries) {
         const d = Math.hypot(b.x - x, b.y - y);
-        if (d < bestDist) {
-          bestDist = d;
-          bestBattery = b;
+        if (d < closestDist) {
+          closestDist = d;
+          closestBattery = b;
         }
       }
-    }
-
-    if (bestBattery) {
-      this.fireBatteryAt(bestBattery, x, y, target);
+      if (closestBattery) {
+        this.fireBatteryAt(closestBattery, x, y, target);
+      }
     }
   }
 
@@ -380,49 +423,49 @@ class KyivDefenseSimulator {
     battery.angle = angle;
 
     if (battery.type === 'mvg') {
-      for (let i = 0; i < 3; i++) {
+      for (let i = 0; i < 4; i++) {
         setTimeout(() => {
           const spread = (Math.random() - 0.5) * 0.08;
           this.projectiles.push({
             x: battery.x,
             y: battery.y,
-            vx: Math.cos(angle + spread) * 580,
-            vy: Math.sin(angle + spread) * 580,
-            life: 0.65,
+            vx: Math.cos(angle + spread) * 620,
+            vy: Math.sin(angle + spread) * 620,
+            life: 0.7,
             type: 'tracer',
             color: '#f59e0b',
-            size: 2.8
+            size: 3
           });
           this.playGunfire();
-        }, i * 40);
+        }, i * 35);
       }
     } else if (battery.type === 'gepard') {
-      for (let i = 0; i < 5; i++) {
+      for (let i = 0; i < 6; i++) {
         setTimeout(() => {
           this.projectiles.push({
             x: battery.x + (i % 2 === 0 ? -4 : 4) * Math.sin(angle),
             y: battery.y + (i % 2 === 0 ? 4 : -4) * Math.cos(angle),
-            vx: Math.cos(angle) * 780,
-            vy: Math.sin(angle) * 780,
-            life: 0.55,
+            vx: Math.cos(angle) * 820,
+            vy: Math.sin(angle) * 820,
+            life: 0.6,
             type: 'flak',
             color: '#00f0ff',
-            size: 3.2
+            size: 3.5
           });
           this.playGunfire();
-        }, i * 30);
+        }, i * 25);
       }
     } else if (battery.type === 'patriot') {
       this.projectiles.push({
         x: battery.x,
         y: battery.y,
-        vx: Math.cos(angle) * 440,
-        vy: Math.sin(angle) * 440,
+        vx: Math.cos(angle) * 460,
+        vy: Math.sin(angle) * 460,
         target: targetEntity || { x: tx, y: ty },
-        life: 2.4,
+        life: 2.6,
         type: 'missile',
         color: '#38bdf8',
-        size: 4.5
+        size: 5
       });
       this.playLaunch();
     }
@@ -455,24 +498,24 @@ class KyivDefenseSimulator {
       ? aliveTargets[Math.floor(Math.random() * aliveTargets.length)]
       : { x: w * 0.5, y: h * 0.5 };
 
-    const isCruiseMissile = Math.random() < 0.25;
-    const isBallistic = !isCruiseMissile && Math.random() < 0.1;
+    const isCruiseMissile = Math.random() < 0.28;
+    const isBallistic = !isCruiseMissile && Math.random() < 0.12;
 
     let type = 'shahed';
-    let speed = 65 + Math.random() * 25;
+    let speed = 70 + Math.random() * 25;
     let hp = 1;
     let color = '#ef4444';
     let label = 'Shahed-136';
 
     if (isCruiseMissile) {
       type = 'kalibr';
-      speed = 135 + Math.random() * 30;
+      speed = 140 + Math.random() * 30;
       hp = 2;
       color = '#f59e0b';
       label = 'Крилата ракета';
     } else if (isBallistic) {
       type = 'ballistic';
-      speed = 220;
+      speed = 230;
       hp = 3;
       color = '#ec4899';
       label = 'Балістика (Іскандер)';
@@ -502,19 +545,27 @@ class KyivDefenseSimulator {
     if (!this.isRunning) return;
 
     // 360° sweep line rotation
-    this.radarAngle += dt * 1.4;
+    this.radarAngle += dt * 1.5;
     if (this.radarAngle > Math.PI * 2) this.radarAngle -= Math.PI * 2;
+
+    // Click pings
+    for (let i = this.clickPings.length - 1; i >= 0; i--) {
+      const ping = this.clickPings[i];
+      ping.radius += dt * 80;
+      ping.alpha -= dt * 2.5;
+      if (ping.alpha <= 0) this.clickPings.splice(i, 1);
+    }
 
     // Spawn waves
     this.spawnTimer += dt;
-    const spawnInterval = Math.max(1.8, 4.5 - this.wave * 0.3);
+    const spawnInterval = Math.max(1.6, 3.8 - this.wave * 0.2);
     if (this.spawnTimer > spawnInterval) {
       this.spawnTimer = 0;
       this.spawnThreat();
-      if (Math.random() < 0.4) this.spawnThreat();
+      if (Math.random() < 0.45) this.spawnThreat();
     }
 
-    // Auto-fire batteries
+    // Auto-fire batteries with cadence
     for (const b of this.batteries) {
       b.lastFire += dt;
       let nearestThreat = null;
@@ -528,7 +579,7 @@ class KyivDefenseSimulator {
         }
       }
 
-      if (nearestThreat && b.lastFire >= b.rate) {
+      if (nearestThreat && b.lastFire >= b.rate * 1.8) {
         b.lastFire = 0;
         this.fireBatteryAt(b, nearestThreat.x, nearestThreat.y, nearestThreat);
       }
@@ -587,11 +638,19 @@ class KyivDefenseSimulator {
         let diff = desiredAngle - currentAngle;
         while (diff < -Math.PI) diff += Math.PI * 2;
         while (diff > Math.PI) diff -= Math.PI * 2;
-        const steerSpeed = 6.5;
+        const steerSpeed = 6.8;
         const newAngle = currentAngle + Math.sign(diff) * Math.min(Math.abs(diff), steerSpeed * dt);
         const speed = Math.hypot(p.vx, p.vy);
         p.vx = Math.cos(newAngle) * speed;
         p.vy = Math.sin(newAngle) * speed;
+
+        // Auto-detonate missile when close to coordinates
+        if (Math.hypot(p.x - targetX, p.y - targetY) < 18) {
+          this.createShockwave(p.x, p.y, '#00f0ff');
+          this.createExplosion(p.x, p.y, 18, '#38bdf8');
+          this.projectiles.splice(i, 1);
+          continue;
+        }
       }
 
       p.x += p.vx * dt;
@@ -600,7 +659,7 @@ class KyivDefenseSimulator {
       let hit = false;
       for (let j = this.threats.length - 1; j >= 0; j--) {
         const t = this.threats[j];
-        const hitRadius = p.type === 'missile' ? 26 : 15;
+        const hitRadius = p.type === 'missile' ? 28 : 16;
         const d = Math.hypot(p.x - t.x, p.y - t.y);
 
         if (d < hitRadius) {
@@ -696,12 +755,14 @@ class KyivDefenseSimulator {
     this.projectiles = [];
     this.particles = [];
     this.shockwaves = [];
+    this.clickPings = [];
     this.score = 0;
     this.interceptedCount = 0;
     this.missedCount = 0;
     this.gridIntegrity = 100;
     this.initWorld();
     this.updateHUD();
+    this.startGame();
   }
 
   render() {
@@ -776,7 +837,7 @@ class KyivDefenseSimulator {
     ctx.fill();
 
     // Kyiv Bridges
-    ctx.strokeStyle = 'rgba(56, 189, 248, 0.4)';
+    ctx.strokeStyle = 'rgba(56, 189, 248, 0.45)';
     ctx.lineWidth = 3;
     ctx.beginPath();
     ctx.moveTo(w * 0.45, h * 0.20);
@@ -815,7 +876,7 @@ class KyivDefenseSimulator {
       ctx.save();
       const isDead = inf.hp <= 0;
 
-      ctx.fillStyle = isDead ? '#475569' : inf.hp < 100 ? '#f59e0b' : '#00f0ff';
+      ctx.fillStyle = isDead ? '#475569' : inf.hp < 100 ? '#f59e0b' : theme.sweep;
       ctx.strokeStyle = '#fff';
       ctx.lineWidth = 1.5;
 
@@ -840,7 +901,7 @@ class KyivDefenseSimulator {
     // Batteries
     for (const b of this.batteries) {
       ctx.save();
-      ctx.strokeStyle = b.type === 'patriot' ? 'rgba(0, 240, 255, 0.25)' : 'rgba(245, 158, 11, 0.2)';
+      ctx.strokeStyle = b.type === 'patriot' ? theme.sweep + '44' : 'rgba(245, 158, 11, 0.25)';
       ctx.lineWidth = 1;
       ctx.setLineDash([4, 4]);
       ctx.beginPath();
@@ -848,7 +909,7 @@ class KyivDefenseSimulator {
       ctx.stroke();
       ctx.setLineDash([]);
 
-      ctx.fillStyle = b.type === 'patriot' ? '#00f0ff' : '#f59e0b';
+      ctx.fillStyle = b.type === 'patriot' ? theme.sweep : '#f59e0b';
       ctx.beginPath();
       ctx.arc(b.x, b.y, 6, 0, Math.PI * 2);
       ctx.fill();
@@ -925,6 +986,18 @@ class KyivDefenseSimulator {
       ctx.restore();
     }
 
+    // Click Pings
+    for (const ping of this.clickPings) {
+      ctx.save();
+      ctx.strokeStyle = theme.sweep;
+      ctx.globalAlpha = ping.alpha;
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(ping.x, ping.y, ping.radius, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    }
+
     // Particles
     for (const part of this.particles) {
       ctx.save();
@@ -940,7 +1013,7 @@ class KyivDefenseSimulator {
     // Reticle on mouse hover
     if (this.isHovering && this.isRunning) {
       ctx.save();
-      ctx.strokeStyle = 'rgba(0, 240, 255, 0.6)';
+      ctx.strokeStyle = theme.sweep + '99';
       ctx.lineWidth = 1;
       const size = 16;
       ctx.strokeRect(this.mouseX - size / 2, this.mouseY - size / 2, size, size);
@@ -953,20 +1026,20 @@ class KyivDefenseSimulator {
       ctx.restore();
     }
 
-    // Pause overlay
+    // Standby Overlay when not running
     if (!this.isRunning) {
       ctx.save();
-      ctx.fillStyle = 'rgba(6, 9, 14, 0.75)';
+      ctx.fillStyle = 'rgba(6, 9, 14, 0.72)';
       ctx.fillRect(0, 0, w, h);
 
       ctx.font = '700 22px "Unbounded", sans-serif';
-      ctx.fillStyle = '#00f0ff';
+      ctx.fillStyle = theme.sweep;
       ctx.textAlign = 'center';
-      ctx.fillText('ТАКТИЧНИЙ СИМУЛЯТОР ППО // РЕЖИМ ЧЕРГУВАННЯ', w / 2, h / 2 - 16);
+      ctx.fillText('ТАКТИЧНИЙ СИМУЛЯТОР ППО // ГОТОВИЙ ДО ЗАХИСТУ', w / 2, h / 2 - 16);
 
       ctx.font = '14px "Inter", sans-serif';
       ctx.fillStyle = '#94a3b8';
-      ctx.fillText('Натисніть «Пуск симулятора» або клікніть по карті для оборони столиці', w / 2, h / 2 + 16);
+      ctx.fillText('Клікніть по карті або натисніть «Пуск симулятора» для відкриття вогню', w / 2, h / 2 + 16);
       ctx.restore();
     }
   }
