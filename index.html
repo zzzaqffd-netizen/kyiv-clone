@@ -3,14 +3,14 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Kyiv 2027 — Стратегія про захист Києва | Тактичний планшет ППО</title>
+  <title>Kyiv 2027 — Стратегія оборони столиці | Cyber-Tactical Command</title>
   <meta name="description" content="Стратегія про захист міста від ударних дронів і ракет. Увесь Київ — вулиця за вулицею, будинок за будинком. Інтерактивний тактичний симулятор оборони столиці.">
-  <meta name="theme-color" content="#10151b">
+  <meta name="theme-color" content="#05080d">
 
   <!-- Typography: Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lato:wght@700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lato:wght@700&family=Unbounded:wght@500;700;800&display=swap" rel="stylesheet">
 
   <link rel="stylesheet" href="style.css">
 </head>
@@ -18,6 +18,7 @@
 
   <!-- Atmospheric Weather Particle Overlay -->
   <canvas id="weather-canvas"></canvas>
+  <div class="scanlines-overlay"></div>
 
   <!-- Global SVG Sprites -->
   <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
@@ -47,11 +48,11 @@
     <div class="wrap topbar-in">
       <a class="brand" href="#top">
         <img src="https://kyiv2027.com/img/logo.png" alt="Kyiv 2027" width="138" height="22" onerror="this.src='https://kyiv2027.com/img/logo.svg'">
-        <span class="brand-badge">TACTICAL SIM</span>
+        <span class="brand-badge"><span class="ping-dot"></span> SEC-044 // DEF_ONLINE</span>
       </a>
 
       <!-- Atmospheric Weather Selector -->
-      <div class="weather-switch" title="Зміна погоди та часу доби у грі">
+      <div class="weather-switch" title="Зміна погодних умов у реальному часі">
         <button type="button" class="weather-btn active" data-weather="night">🌙 Ніч</button>
         <button type="button" class="weather-btn" data-weather="winter">❄️ Зима</button>
         <button type="button" class="weather-btn" data-weather="rain">🌧️ Осінь</button>
@@ -60,13 +61,13 @@
       <!-- Desktop Navigation Links -->
       <nav class="links">
         <a href="#about">Про гру</a>
-        <a href="#simulator" class="nav-highlight">⚡ Тактичний симулятор</a>
-        <a href="#arsenal">Арсенал ППО</a>
+        <a href="#simulator" class="nav-highlight">⚡ Симулятор ППО</a>
+        <a href="#arsenal">Арсенал</a>
         <a href="#districts">Райони</a>
         <a href="#news">Новини</a>
         <a href="#gallery">Галерея</a>
 
-        <!-- Language switcher details popover -->
+        <!-- Language Switcher Details -->
         <details class="lang">
           <summary aria-label="Мова: Українська">
             <svg aria-hidden="true" viewBox="0 0 24 24">
@@ -87,7 +88,7 @@
           </ul>
         </details>
 
-        <!-- Ammo / Donate button with heartbeat -->
+        <!-- Donate heart button -->
         <a class="bar-donate" href="#simulator" title="Задонатити патрони / Оборона міста">
           <svg aria-hidden="true" viewBox="0 0 24 24">
             <path fill="currentColor" d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 4.5 6.7 4.5c2.1 0 3.6 1.2 4.3 2.5h2c.7-1.3 2.2-2.5 4.3-2.5 3.7 0 5.8 3.9 4.3 7.3C19.5 16.4 12 21 12 21z"></path>
@@ -114,7 +115,7 @@
     <div class="wrap">
       <div class="mnav-links">
         <a href="#about">Про гру</a>
-        <a href="#simulator" style="color: var(--yellow);">⚡ Тактичний симулятор</a>
+        <a href="#simulator" style="color: var(--yellow-tactical);">⚡ Тактичний симулятор</a>
         <a href="#arsenal">Арсенал ППО</a>
         <a href="#districts">Райони та ТЕЦ</a>
         <a href="#news">Новини розробки</a>
@@ -178,8 +179,13 @@
     <div class="hero-shade"></div>
 
     <div class="wrap hero-text">
-      <div class="kicker">
-        <span class="badge"><span class="pulse-dot"></span> Гра в розробці • Unreal Engine 5</span>
+      <!-- Tactical Telemetry Strip -->
+      <div class="hero-telemetry-strip">
+        <span><span class="ping-dot"></span> СИСТЕМА ОБОРОНИ АКТИВНА</span>
+        <span class="sep">•</span>
+        <span>СЕКТОР: КИЇВ (LAT 50.45° N | LON 30.52° E)</span>
+        <span class="sep">•</span>
+        <span>ДВИГУН: UNREAL ENGINE 5</span>
       </div>
 
       <div class="hero-logo-wrap">
@@ -187,8 +193,28 @@
       </div>
 
       <p class="lead">
-        Стратегія про захист міста від ударних дронів і ракет. Увесь Київ — вулиця за вулицею, будинок за будинком.
+        Тактична стратегія про захист серця України від ударних дронів і ракет. Увесь Київ у масштабі 1:1 — вулиця за вулицею, будинок за будинком, міст за мостом.
       </p>
+
+      <!-- Key Tactical Indicators Deck -->
+      <div class="hero-hud-kpi-deck">
+        <div class="kpi-pill">
+          <span>Міський масив 1:1</span>
+          <b>236 000 будівель</b>
+        </div>
+        <div class="kpi-pill">
+          <span>Площа ігрової карти</span>
+          <b>1 925 км²</b>
+        </div>
+        <div class="kpi-pill">
+          <span>Трафік та пішоходи</span>
+          <b>80 000 машин</b>
+        </div>
+        <div class="kpi-pill">
+          <span>Прикриття неба</span>
+          <b>МВГ • Gepard • Patriot</b>
+        </div>
+      </div>
 
       <div class="socials">
         <a class="social btn-sim-launch" href="#simulator">
@@ -207,7 +233,7 @@
           <svg class="icon"><use href="#i-instagram"></use></svg>Instagram
         </a>
         <span class="social soon" title="Сторінка в Steam з’явиться ближче до релізу">
-          <svg class="icon"><use href="#i-steam"></use></svg>Steam — буде реліз
+          <svg class="icon"><use href="#i-steam"></use></svg>Steam — скоро реліз
         </span>
       </div>
     </div>
@@ -233,12 +259,12 @@
 
   <!-- Main Content Sections -->
   <main>
-    <!-- UNIQUE SECTION: TACTICAL AIR DEFENSE SIMULATOR -->
+    <!-- INTERACTIVE TACTICAL RADAR SIMULATOR SECTION -->
     <section class="sim-section" id="simulator">
       <div class="wrap">
         <h2>Тактичний планшет ППО Києва</h2>
-        <p style="color: var(--muted); margin-bottom: 20px;">
-          Інтерактивна тактична симуляція протиповітряної оборони столиці в реальному часі. Керуйте мобільними вогневими групами (МВГ), зенітними установками Gepard і комплексами Patriot для відбиття хвиль ворожих шахедів та ракет від критичної інфраструктури й мостів.
+        <p style="color: var(--fg-muted); margin-bottom: 24px; font-size: 17px;">
+          Інтерактивний радар оборони столиці в реальному часі. Розподіляйте вогневі засоби вздовж Дніпра, захищайте ТЕЦ-5, ТЕЦ-6, мости Патона і Південний від хвиль дронів-камікадзе та балістики. Клікніть по карті для наведення та запуску перехоплювачів.
         </p>
 
         <div class="sim-container">
@@ -246,27 +272,27 @@
           <div class="sim-header">
             <div class="sim-title-group">
               <h3>
-                <span class="pulse-dot"></span>
-                СЕКТОР НЕБА: КИЇВ • АКТИВНА СИМУЛЯЦІЯ
+                <span class="ping-dot"></span>
+                СЕКТОР НЕБА: КИЇВ // РАДАРНИЙ МОНІТОРИНГ
               </h3>
-              <p class="sim-subtitle">Дніпро, мости, ТЕЦ-5, ТЕЦ-6, урядовий квартал під захистом</p>
+              <p class="sim-subtitle">Дніпро, мости, ТЕЦ-5, ТЕЦ-6, Печерськ під цілодобовим захистом</p>
             </div>
 
             <div class="sim-telemetry-hud">
               <div class="hud-item">
-                <span class="hud-label">Рахунок захисту</span>
+                <span class="hud-label">Рахунок оборони</span>
                 <span class="hud-val highlight" id="sim-score">0</span>
               </div>
               <div class="hud-item">
-                <span class="hud-label">Збито цілей</span>
-                <span class="hud-val" id="sim-intercepted" style="color: #00e676;">0</span>
+                <span class="hud-label">Збито загроз</span>
+                <span class="hud-val" id="sim-intercepted" style="color: var(--emerald-live);">0</span>
               </div>
               <div class="hud-item">
                 <span class="hud-label">Пропущено</span>
-                <span class="hud-val" id="sim-missed" style="color: #ff5252;">0</span>
+                <span class="hud-val" id="sim-missed" style="color: var(--crimson-alert);">0</span>
               </div>
               <div class="hud-item">
-                <span class="hud-label">Енергомережа Києва</span>
+                <span class="hud-label">Цілісність енергомережі</span>
                 <span class="hud-val" id="sim-grid-text">100%</span>
                 <div class="grid-bar-wrap">
                   <div class="grid-bar-fill" id="sim-grid-bar"></div>
@@ -283,21 +309,21 @@
           <!-- Simulator Footer Controls -->
           <div class="sim-footer-controls">
             <div class="sim-weapon-selector">
-              <span style="font-size: 13px; color: #98a3ae; align-self: center; margin-right: 4px;">Зброя:</span>
-              <button type="button" class="w-btn active" data-weapon="mvg">МВГ (Кулемети 12.7мм)</button>
-              <button type="button" class="w-btn" data-weapon="gepard">Gepard 35мм</button>
-              <button type="button" class="w-btn" data-weapon="patriot">ЗРК Patriot</button>
+              <span style="font-size: 12px; font-family: var(--mono-font); color: var(--fg-muted); text-transform: uppercase;">Озброєння:</span>
+              <button type="button" class="w-btn active" data-weapon="mvg">🎯 МВГ (12.7мм Browning)</button>
+              <button type="button" class="w-btn" data-weapon="gepard">⚡ Gepard (35мм Flak)</button>
+              <button type="button" class="w-btn" data-weapon="patriot">🚀 ЗРК Patriot PAC-3</button>
             </div>
 
             <div class="sim-action-btns">
               <button type="button" class="sim-ctrl-btn" id="sim-audio-toggle">
-                <span class="btn-text">Звук: Вимкнено</span>
+                <span class="btn-text">🔊 Звук: Вимкнено</span>
               </button>
               <button type="button" class="sim-ctrl-btn active" id="sim-play-toggle">
-                <span class="btn-text">Пуск симулятора</span>
+                <span class="btn-text">▶ Пуск симулятора</span>
               </button>
               <button type="button" class="sim-ctrl-btn" id="sim-reset">
-                Скинути
+                ↻ Скинути
               </button>
             </div>
           </div>
@@ -305,12 +331,12 @@
       </div>
     </section>
 
-    <!-- UNIQUE SECTION: ARSENAL & BLUEPRINT INSPECTOR -->
+    <!-- ARSENAL HOLOGRAPHIC BLUEPRINT SECTION -->
     <section class="arsenal-section" id="arsenal">
       <div class="wrap">
-        <h2>Арсенал ППО столиці</h2>
-        <p style="color: var(--muted); margin-bottom: 24px;">
-          Оберіть бойову систему зі списку, щоб переглянути тактико-технічні характеристики у грі.
+        <h2>Арсенал і бойові комплекси</h2>
+        <p style="color: var(--fg-muted); margin-bottom: 28px;">
+          Оберіть бойову систему для детального аналізу тактико-технічних характеристик у грі.
         </p>
 
         <div class="arsenal-grid">
@@ -318,22 +344,22 @@
           <div class="weapon-cards-list">
             <div class="weapon-blueprint-card selected" data-weapon-key="mvg">
               <h4>МВГ на пікапі 4x4</h4>
-              <p>Мобільні групи з прожекторами й спареними кулеметами Browning/ДШК.</p>
+              <p>Швидкісні мобільні групи з тепловізорами, прожекторами та кулеметами 12.7 мм.</p>
             </div>
 
             <div class="weapon-blueprint-card" data-weapon-key="gepard">
-              <h4>Gepard 1A2</h4>
-              <p>Зенітна самохідна установка з радаром наведення і двома 35-мм гарматами.</p>
+              <h4>Gepard 1A2 (ЗСУ «Гепард»)</h4>
+              <p>Зенітна бронемашина з радаром супроводу та двома 35-мм гарматами Oerlikon.</p>
             </div>
 
             <div class="weapon-blueprint-card" data-weapon-key="patriot">
               <h4>MIM-104 Patriot PAC-3</h4>
-              <p>Комплекс протиракетної оборони для знищення балістичних і крилатих загроз.</p>
+              <p>Далекобійний зенітно-ракетний комплекс для знищення балістичних і крилатих загроз.</p>
             </div>
 
             <div class="weapon-blueprint-card" data-weapon-key="zvuk">
               <h4>Акустична мережа «ЗВУК»</h4>
-              <p>Мережа мікрофонних сенсорів на дахах Києва для раннього виявлення дронів.</p>
+              <p>Тисячі мікрофонних сенсорів на дахах Києва для надраннього виявлення дронів.</p>
             </div>
           </div>
 
@@ -356,12 +382,12 @@
       </div>
     </section>
 
-    <!-- UNIQUE SECTION: DISTRICTS & ENERGY GRID TELEMETRY -->
+    <!-- DISTRICTS TELEMETRY & GRID STATUS SECTION -->
     <section class="districts-section" id="districts">
       <div class="wrap">
         <h2>Моніторинг районів і критичної інфраструктури</h2>
-        <p style="color: var(--muted);">
-          Усі райони Києва змодельовано у масштабі 1:1. Влучання впливають на постачання світла, рух транспорту та роботу мостів.
+        <p style="color: var(--fg-muted);">
+          Усі 10 районів Києва та ключові енергетичні вузли змодельовано у масштабі 1:1.
         </p>
 
         <div class="district-cards-grid">
@@ -373,7 +399,7 @@
             <div class="district-meta">
               <span>Будівель: <b>24 500</b></span>
               <span>Енергопостачання: <b>100%</b></span>
-              <span>Прикриття: Patriot + Gepard</span>
+              <span>Прикриття: <b>Patriot + Gepard</b></span>
             </div>
           </div>
 
@@ -385,19 +411,19 @@
             <div class="district-meta">
               <span>Будівель: <b>38 200</b></span>
               <span>Енергопостачання: <b>100%</b></span>
-              <span>Прикриття: МВГ + ЗУ-23-2</span>
+              <span>Прикриття: <b>МВГ + ЗУ-23-2</b></span>
             </div>
           </div>
 
           <div class="district-card">
             <div class="district-card-header">
-              <h4>Лівий берег (Дарниця, Троєщина)</h4>
+              <h4>Лівий берег & ТЕЦ-6</h4>
               <span class="status-badge alert">ЧЕРГУВАННЯ</span>
             </div>
             <div class="district-meta">
               <span>Будівель: <b>92 000</b></span>
               <span>ТЕЦ-6: <b>Під захистом</b></span>
-              <span>Прикриття: Мобільні патрулі</span>
+              <span>Прикриття: <b>Мобільні патрулі</b></span>
             </div>
           </div>
 
@@ -409,7 +435,7 @@
             <div class="district-meta">
               <span>Будівель: <b>42 100</b></span>
               <span>Південний міст: <b>Відкрито</b></span>
-              <span>Прикриття: Gepard + Радар</span>
+              <span>Прикриття: <b>Gepard + Радар</b></span>
             </div>
           </div>
         </div>
@@ -624,7 +650,7 @@
           <svg class="icon"><use href="#i-instagram"></use></svg>Instagram
         </a>
         <span class="social soon">
-          <svg class="icon"><use href="#i-steam"></use></svg>Steam — буде реліз
+          <svg class="icon"><use href="#i-steam"></use></svg>Steam — скоро реліз
         </span>
       </div>
 
@@ -647,7 +673,7 @@
       </p>
 
       <p>
-        Розробка проєкту: <a href="https://joie.com.ua/en/" target="_blank" rel="noopener" class="joie-badge">joie.com.ua</a>
+        Розробка проєкту: <a href="https://joie.com.ua/en/" target="_blank" rel="noopener">joie.com.ua</a>
       </p>
     </div>
   </footer>
