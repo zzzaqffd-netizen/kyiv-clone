@@ -27,6 +27,13 @@ class KyivDefenseSimulator {
     this.wave = 1;
     this.spawnTimer = 0;
     this.radarAngle = 0; // 360° sweep line angle
+    this.themeMode = 'cyan'; // 'cyan', 'flir', 'amber', 'stealth'
+    this.themeColors = {
+      cyan: { sweep: '#00f0ff', line: 'rgba(0, 240, 255, 0.14)', text: '#cbd5e1' },
+      flir: { sweep: '#22c55e', line: 'rgba(34, 197, 94, 0.18)', text: '#86efac' },
+      amber: { sweep: '#f59e0b', line: 'rgba(245, 158, 11, 0.18)', text: '#fde68a' },
+      stealth: { sweep: '#e2e8f0', line: 'rgba(148, 163, 184, 0.14)', text: '#94a3b8' }
+    };
 
     // Mouse / Target Reticle
     this.mouseX = 0;
@@ -159,6 +166,12 @@ class KyivDefenseSimulator {
       osc.start();
       osc.stop(this.audioCtx.currentTime + 0.38);
     } catch (e) {}
+  }
+
+  setTheme(mode) {
+    if (this.themeColors[mode]) {
+      this.themeMode = mode;
+    }
   }
 
   resize() {
@@ -720,7 +733,8 @@ class KyivDefenseSimulator {
     // Concentric Range Rings centered on Kyiv center
     const centerX = w * 0.46;
     const centerY = h * 0.50;
-    ctx.strokeStyle = 'rgba(0, 240, 255, 0.12)';
+    const theme = this.themeColors[this.themeMode] || this.themeColors.cyan;
+    ctx.strokeStyle = theme.line;
     for (let r = 80; r < Math.max(w, h); r += 80) {
       ctx.beginPath();
       ctx.arc(centerX, centerY, r, 0, Math.PI * 2);
@@ -730,8 +744,8 @@ class KyivDefenseSimulator {
     // 360° Radar Sweep Line with gradient tail
     ctx.save();
     const sweepGrad = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, Math.max(w, h));
-    sweepGrad.addColorStop(0, 'rgba(0, 240, 255, 0.2)');
-    sweepGrad.addColorStop(1, 'rgba(0, 240, 255, 0.02)');
+    sweepGrad.addColorStop(0, theme.sweep + '33');
+    sweepGrad.addColorStop(1, theme.sweep + '05');
 
     ctx.fillStyle = sweepGrad;
     ctx.beginPath();
@@ -741,7 +755,7 @@ class KyivDefenseSimulator {
     ctx.fill();
 
     // Leading sweep line
-    ctx.strokeStyle = 'rgba(0, 240, 255, 0.65)';
+    ctx.strokeStyle = theme.sweep;
     ctx.lineWidth = 1.5;
     ctx.beginPath();
     ctx.moveTo(centerX, centerY);

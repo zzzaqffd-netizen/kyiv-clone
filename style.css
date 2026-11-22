@@ -1,29 +1,30 @@
 /* ==========================================================================
    KYIV 2027 // CYBER-TACTICAL DEFENSE COMMAND SYSTEM (UNREAL ENGINE 5 HUD)
    Ultra-high fidelity, military sci-fi, glassmorphic tactical aesthetic.
+   Features:
+   - 4 Dynamic HUD Modes: Cyan (Default), FLIR Night Vision, Amber CRT, Stealth
+   - Chamfered military cards with polygon cuts
+   - Live Radio Chatter Dispatch Ticker
+   - Mouse Coordinate Telemetry HUD
+   - Interactive 3D tilt and specular lighting
    ========================================================================== */
 
 :root {
   --bg-deep: #05080d;
   --bg-surface: #0a0f18;
-  --bg-card: rgba(13, 20, 32, 0.75);
-  --bg-card-hover: rgba(18, 28, 45, 0.88);
-  --line-dim: rgba(56, 189, 248, 0.14);
-  --line-bright: rgba(56, 189, 248, 0.45);
-  --line-gold: rgba(245, 158, 11, 0.35);
+  --bg-card: rgba(13, 20, 32, 0.78);
+  --bg-card-hover: rgba(18, 28, 45, 0.92);
+  --line-dim: rgba(56, 189, 248, 0.16);
+  --line-bright: rgba(56, 189, 248, 0.5);
 
-  --cyan: #00f0ff;
-  --cyan-glow: rgba(0, 240, 255, 0.35);
-  --blue-primary: #1f5fbf;
-  --blue-accent: #38bdf8;
-  --yellow-tactical: #f59e0b;
-  --yellow-glow: rgba(245, 158, 11, 0.4);
-  --emerald-live: #10b981;
-  --emerald-glow: rgba(16, 185, 129, 0.4);
-  --crimson-alert: #ef4444;
-  --crimson-glow: rgba(239, 68, 68, 0.45);
+  --accent-primary: #00f0ff;
+  --accent-glow: rgba(0, 240, 255, 0.4);
+  --accent-secondary: #38bdf8;
+  --gold-tactical: #f59e0b;
+  --gold-glow: rgba(245, 158, 11, 0.45);
+  --radar-center: #00f0ff;
 
-  --fg-bright: #f8fafc;
+  --fg-bright: #ffffff;
   --fg-main: #e2e8f0;
   --fg-muted: #94a3b8;
   --fg-dark: #64748b;
@@ -32,8 +33,56 @@
   --body-font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --mono-font: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
 
-  --bar-h: 70px;
+  --bar-h: 74px;
   --slide-ms: 6500ms;
+}
+
+/* ---- FLIR NIGHT VISION MODE (GREEN PHOSPHOR) ---- */
+body[data-hud-mode="flir"] {
+  --bg-deep: #030a05;
+  --bg-surface: #06140a;
+  --bg-card: rgba(6, 20, 10, 0.82);
+  --bg-card-hover: rgba(10, 32, 16, 0.92);
+  --line-dim: rgba(34, 197, 94, 0.2);
+  --line-bright: rgba(34, 197, 94, 0.6);
+  --accent-primary: #22c55e;
+  --accent-glow: rgba(34, 197, 94, 0.45);
+  --accent-secondary: #4ade80;
+  --gold-tactical: #86efac;
+  --gold-glow: rgba(134, 239, 172, 0.4);
+  --radar-center: #22c55e;
+  filter: contrast(1.1) brightness(0.98);
+}
+
+/* ---- AMBER CRT COMMAND MODE (WARM RETRO TACTICAL) ---- */
+body[data-hud-mode="amber"] {
+  --bg-deep: #0d0803;
+  --bg-surface: #170f06;
+  --bg-card: rgba(26, 16, 6, 0.82);
+  --bg-card-hover: rgba(38, 24, 9, 0.92);
+  --line-dim: rgba(245, 158, 11, 0.2);
+  --line-bright: rgba(245, 158, 11, 0.6);
+  --accent-primary: #f59e0b;
+  --accent-glow: rgba(245, 158, 11, 0.45);
+  --accent-secondary: #fbbf24;
+  --gold-tactical: #fde68a;
+  --gold-glow: rgba(253, 230, 138, 0.4);
+  --radar-center: #f59e0b;
+}
+
+/* ---- STEALTH OBSIDIAN MODE (MINIMAL COVERT) ---- */
+body[data-hud-mode="stealth"] {
+  --bg-deep: #020305;
+  --bg-surface: #07090e;
+  --bg-card: rgba(10, 14, 20, 0.85);
+  --bg-card-hover: rgba(15, 21, 30, 0.95);
+  --line-dim: rgba(148, 163, 184, 0.14);
+  --line-bright: rgba(148, 163, 184, 0.4);
+  --accent-primary: #e2e8f0;
+  --accent-glow: rgba(226, 232, 240, 0.3);
+  --accent-secondary: #94a3b8;
+  --gold-tactical: #f59e0b;
+  --radar-center: #e2e8f0;
 }
 
 * {
@@ -42,7 +91,7 @@
 
 html {
   scroll-behavior: smooth;
-  scroll-padding-top: calc(var(--bar-h) + 20px);
+  scroll-padding-top: calc(var(--bar-h) + 36px);
   background: var(--bg-deep);
   color-scheme: dark;
 }
@@ -55,14 +104,15 @@ body {
   margin: 0;
   background-color: var(--bg-deep);
   background-image:
-    radial-gradient(circle at 50% 0%, rgba(31, 95, 191, 0.15), transparent 45%),
-    linear-gradient(rgba(0, 240, 255, 0.02) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 240, 255, 0.02) 1px, transparent 1px);
-  background-size: 100% 100%, 40px 40px, 40px 40px;
+    radial-gradient(circle at 50% 0%, rgba(31, 95, 191, 0.18), transparent 50%),
+    linear-gradient(rgba(0, 240, 255, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 240, 255, 0.025) 1px, transparent 1px);
+  background-size: 100% 100%, 48px 48px, 48px 48px;
   color: var(--fg-main);
   font: 16px/1.65 var(--body-font);
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
+  transition: background-color 0.4s ease;
 }
 
 /* Custom Tactical Scrollbar */
@@ -78,22 +128,22 @@ body {
   border: 1px solid var(--line-dim);
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--blue-accent);
+  background: var(--accent-primary);
 }
 
 a {
-  color: var(--blue-accent);
+  color: var(--accent-secondary);
   text-decoration: none;
   transition: color 0.2s, text-shadow 0.2s;
 }
 
 a:hover {
-  color: var(--cyan);
-  text-shadow: 0 0 8px var(--cyan-glow);
+  color: var(--accent-primary);
+  text-shadow: 0 0 10px var(--accent-glow);
 }
 
 .wrap {
-  width: min(1200px, 100% - 40px);
+  width: min(1240px, 100% - 40px);
   margin-inline: auto;
 }
 
@@ -106,42 +156,122 @@ h1, h2, h3, h4 {
 }
 
 h2 {
-  font-size: clamp(24px, 3.2vw, 34px);
+  font-size: clamp(24px, 3.4vw, 36px);
   font-weight: 700;
   letter-spacing: -0.01em;
   position: relative;
   display: inline-block;
 }
 
+h2::before {
+  content: "// ";
+  color: var(--accent-primary);
+  font-family: var(--mono-font);
+  font-weight: 400;
+}
+
 h2::after {
   content: "";
   position: absolute;
   left: 0;
-  bottom: -6px;
-  width: 48px;
+  bottom: -8px;
+  width: 56px;
   height: 2px;
-  background: linear-gradient(90deg, var(--cyan), transparent);
+  background: linear-gradient(90deg, var(--accent-primary), transparent);
+  box-shadow: 0 0 8px var(--accent-glow);
 }
 
-/* Atmospheric weather particle canvas */
-#weather-canvas {
-  position: fixed;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 25;
-}
-
-/* Scanline Overlay Effect for Military CRT look */
+/* Scanline Overlay for Military CRT feel */
 .scanlines-overlay {
   position: fixed;
   inset: 0;
   pointer-events: none;
   background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
   background-size: 100% 4px;
-  z-index: 22;
+  z-index: 30;
   opacity: 0.35;
+}
+
+/* ==========================================================================
+   LIVE RADIO CHATTER & DISPATCH TICKER (TOP OF PAGE)
+   ========================================================================== */
+.radio-dispatch-ticker {
+  background: rgba(4, 7, 12, 0.95);
+  border-bottom: 1px solid var(--line-dim);
+  font-family: var(--mono-font);
+  font-size: 11px;
+  color: var(--accent-primary);
+  padding: 4px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  position: relative;
+  z-index: 50;
+}
+
+.ticker-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.ticker-badge {
+  background: rgba(0, 240, 255, 0.15);
+  border: 1px solid var(--line-bright);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.ticker-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--fg-main);
+  animation: ticker-glitch 0.4s ease;
+}
+
+.ticker-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex: none;
+}
+
+.hud-mode-selector {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid var(--line-dim);
+  border-radius: 4px;
+  padding: 2px 4px;
+}
+
+.hud-mode-btn {
+  background: transparent;
+  border: 0;
+  color: var(--fg-muted);
+  font-size: 10px;
+  font-family: var(--mono-font);
+  font-weight: 700;
+  padding: 2px 6px;
+  cursor: pointer;
+  border-radius: 3px;
+  transition: all 0.15s;
+}
+
+.hud-mode-btn:hover {
+  color: var(--fg-bright);
+}
+
+.hud-mode-btn.active {
+  background: var(--accent-primary);
+  color: #05080d;
 }
 
 /* ==========================================================================
@@ -149,10 +279,10 @@ h2::after {
    ========================================================================== */
 .topbar {
   position: fixed;
-  top: 0;
+  top: 27px; /* directly below the radio ticker */
   left: 0;
   right: 0;
-  z-index: 40;
+  z-index: 45;
   background: rgba(7, 10, 15, 0.88);
   backdrop-filter: blur(20px) saturate(1.4);
   border-bottom: 1px solid var(--line-dim);
@@ -161,7 +291,7 @@ h2::after {
 }
 
 .topbar.over-hero:not(.scrolled):not(.menu-open) {
-  background: linear-gradient(to bottom, rgba(5, 8, 13, 0.95), rgba(5, 8, 13, 0.4) 75%, transparent);
+  background: linear-gradient(to bottom, rgba(5, 8, 13, 0.95), rgba(5, 8, 13, 0.45) 75%, transparent);
   border-bottom-color: rgba(56, 189, 248, 0.08);
 }
 
@@ -185,7 +315,7 @@ h2::after {
   display: block;
   height: 24px;
   width: auto;
-  filter: drop-shadow(0 0 10px rgba(0, 240, 255, 0.3));
+  filter: drop-shadow(0 0 10px var(--accent-glow));
 }
 
 .brand-badge {
@@ -193,29 +323,29 @@ h2::after {
   font-family: var(--mono-font);
   font-weight: 700;
   background: rgba(0, 240, 255, 0.12);
-  border: 1px solid rgba(0, 240, 255, 0.35);
-  color: var(--cyan);
+  border: 1px solid var(--line-bright);
+  color: var(--accent-primary);
   padding: 3px 8px;
   border-radius: 4px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
 }
 
 .brand-badge .ping-dot {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--cyan);
-  box-shadow: 0 0 6px var(--cyan);
+  background: var(--accent-primary);
+  box-shadow: 0 0 8px var(--accent-primary);
   animation: ping 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
 }
 
 @keyframes ping {
   75%, 100% {
-    transform: scale(2);
+    transform: scale(2.2);
     opacity: 0;
   }
 }
@@ -244,9 +374,9 @@ h2::after {
   left: 0;
   width: 0;
   height: 2px;
-  background: var(--cyan);
+  background: var(--accent-primary);
   transition: width 0.25s ease;
-  box-shadow: 0 0 8px var(--cyan-glow);
+  box-shadow: 0 0 8px var(--accent-glow);
 }
 
 .links a:hover {
@@ -259,13 +389,13 @@ h2::after {
 }
 
 .links a.nav-highlight {
-  color: var(--yellow-tactical);
+  color: var(--gold-tactical);
   font-weight: 600;
 }
 
 .links a.nav-highlight::after {
-  background: var(--yellow-tactical);
-  box-shadow: 0 0 8px var(--yellow-glow);
+  background: var(--gold-tactical);
+  box-shadow: 0 0 8px var(--gold-glow);
 }
 
 /* Atmospheric Weather Switcher */
@@ -297,8 +427,8 @@ h2::after {
 
 .weather-btn.active {
   background: rgba(56, 189, 248, 0.2);
-  color: var(--cyan);
-  border: 1px solid rgba(0, 240, 255, 0.3);
+  color: var(--accent-primary);
+  border: 1px solid var(--line-bright);
   font-weight: 600;
 }
 
@@ -339,9 +469,9 @@ h2::after {
 
 .lang summary:hover,
 .lang[open] summary {
-  border-color: var(--cyan);
+  border-color: var(--accent-primary);
   color: #fff;
-  box-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
+  box-shadow: 0 0 10px var(--accent-glow);
 }
 
 .lang summary svg {
@@ -382,13 +512,13 @@ h2::after {
 
 .lang li a:hover {
   background: rgba(56, 189, 248, 0.15);
-  color: var(--cyan);
+  color: var(--accent-primary);
 }
 
 .lang li a[aria-current] {
   background: rgba(56, 189, 248, 0.25);
-  color: var(--cyan);
-  border: 1px solid var(--cyan);
+  color: var(--accent-primary);
+  border: 1px solid var(--accent-primary);
 }
 
 /* Donate Heart button */
@@ -401,7 +531,7 @@ h2::after {
   background: linear-gradient(135deg, #fbbf24, #d97706);
   color: #0f172a;
   text-decoration: none;
-  box-shadow: 0 0 14px var(--yellow-glow);
+  box-shadow: 0 0 14px var(--gold-glow);
   transition: transform 0.2s, filter 0.2s;
 }
 
@@ -457,6 +587,77 @@ h2::after {
 .burger[aria-expanded="true"] span:nth-child(2) { opacity: 0; }
 .burger[aria-expanded="true"] span:nth-child(3) { top: 21px; transform: rotate(-45deg); }
 
+/* Mobile Menu */
+.mnav {
+  position: fixed;
+  top: calc(var(--bar-h) + 27px);
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: #070a0f;
+  color: #fff;
+  padding: 16px 20px calc(36px + env(safe-area-inset-bottom));
+  animation: mnav-in 0.25s ease-out;
+}
+
+.mnav[hidden] {
+  display: none;
+}
+
+@keyframes mnav-in {
+  from { opacity: 0; transform: translateY(-10px); }
+}
+
+.mnav-links {
+  display: grid;
+}
+
+.mnav-links a {
+  padding: 18px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  color: #fff;
+  text-decoration: none;
+  font-family: var(--display-font);
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.mnav-langs {
+  list-style: none;
+  margin: 20px 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.mnav-langs a {
+  display: block;
+  padding: 10px;
+  border: 1px solid var(--line-dim);
+  border-radius: 8px;
+  color: #fff;
+  text-decoration: none;
+  font-size: 14px;
+  text-align: center;
+  font-family: var(--mono-font);
+  font-weight: 600;
+}
+
+.mnav-langs a[aria-current] {
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+}
+
+.mnav-socials {
+  margin-top: 24px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
 /* ==========================================================================
    HERO COMMAND DECK & VISUALS
    ========================================================================== */
@@ -468,6 +669,7 @@ h2::after {
   overflow: hidden;
   color: #fff;
   background: var(--bg-deep);
+  margin-top: 27px;
 }
 
 .hero-slides {
@@ -499,7 +701,7 @@ h2::after {
   object-fit: cover;
   transform: scale(1.08);
   transition: transform calc(var(--slide-ms) + 2s) linear;
-  filter: contrast(1.08) brightness(0.9);
+  filter: contrast(1.08) brightness(0.92);
 }
 
 .slide.is-active .hero-img {
@@ -510,13 +712,13 @@ h2::after {
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(to top, var(--bg-deep) 0%, rgba(5, 8, 13, 0.88) 35%, rgba(5, 8, 13, 0.45) 70%, rgba(5, 8, 13, 0.85) 100%),
+    linear-gradient(to top, var(--bg-deep) 0%, rgba(5, 8, 13, 0.88) 35%, rgba(5, 8, 13, 0.4) 70%, rgba(5, 8, 13, 0.85) 100%),
     radial-gradient(ellipse at 80% 20%, rgba(31, 95, 191, 0.25), transparent 60%);
 }
 
 .hero-text {
   position: relative;
-  padding-block: 56px 80px;
+  padding-block: 56px 84px;
   z-index: 5;
 }
 
@@ -524,20 +726,21 @@ h2::after {
   padding-bottom: 110px;
 }
 
-/* Tactical Status HUD Bar inside Hero */
+/* Tactical Telemetry Strip */
 .hero-telemetry-strip {
   display: inline-flex;
   align-items: center;
   gap: 12px;
-  padding: 6px 14px;
+  padding: 6px 16px;
   border-radius: 999px;
   background: rgba(10, 15, 24, 0.75);
   border: 1px solid var(--line-bright);
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(14px);
   margin-bottom: 16px;
   font-family: var(--mono-font);
   font-size: 12px;
-  color: var(--cyan);
+  color: var(--accent-primary);
+  box-shadow: 0 0 16px var(--accent-glow);
 }
 
 .hero-telemetry-strip span {
@@ -556,8 +759,8 @@ h2::after {
 
 .hero-logo-text {
   font-family: var(--display-font);
-  font-size: clamp(44px, 7vw, 84px);
-  font-weight: 700;
+  font-size: clamp(48px, 7.5vw, 88px);
+  font-weight: 800;
   letter-spacing: -0.03em;
   text-transform: uppercase;
   margin: 0;
@@ -565,43 +768,48 @@ h2::after {
   background: linear-gradient(180deg, #ffffff 30%, #94a3b8 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 4px 24px rgba(0, 0, 0, 0.8));
+  filter: drop-shadow(0 4px 28px rgba(0, 0, 0, 0.8));
 }
 
 .hero-logo-year {
-  color: var(--yellow-tactical);
-  -webkit-text-fill-color: var(--yellow-tactical);
-  text-shadow: 0 0 30px var(--yellow-glow);
+  color: var(--gold-tactical);
+  -webkit-text-fill-color: var(--gold-tactical);
+  text-shadow: 0 0 30px var(--gold-glow);
 }
 
 .lead {
   font-size: clamp(18px, 2.2vw, 22px);
-  max-width: 42em;
+  max-width: 44em;
   margin: 0;
-  line-height: 1.5;
+  line-height: 1.55;
   color: #cbd5e1;
   text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
 }
 
-/* Hero Key Indicators Deck */
+/* Key Indicators KPI Deck with Chamfered Military Corners */
 .hero-hud-kpi-deck {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 12px;
   margin-top: 28px;
-  max-width: 820px;
+  max-width: 860px;
 }
 
 .kpi-pill {
-  background: rgba(10, 15, 24, 0.65);
+  background: rgba(10, 15, 24, 0.72);
   border: 1px solid var(--line-dim);
   backdrop-filter: blur(14px);
-  padding: 10px 14px;
-  border-radius: 10px;
+  padding: 12px 16px;
   display: grid;
-  gap: 2px;
+  gap: 4px;
   position: relative;
-  overflow: hidden;
+  clip-path: polygon(0 8px, 8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%);
+  transition: transform 0.2s, border-color 0.2s;
+}
+
+.kpi-pill:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent-primary);
 }
 
 .kpi-pill::before {
@@ -609,9 +817,10 @@ h2::after {
   position: absolute;
   top: 0;
   left: 0;
-  width: 3px;
+  width: 4px;
   height: 100%;
-  background: var(--cyan);
+  background: var(--accent-primary);
+  box-shadow: 0 0 8px var(--accent-primary);
 }
 
 .kpi-pill span {
@@ -624,7 +833,7 @@ h2::after {
 
 .kpi-pill b {
   font-family: var(--display-font);
-  font-size: 17px;
+  font-size: 18px;
   color: var(--fg-bright);
   font-variant-numeric: tabular-nums;
 }
@@ -642,7 +851,6 @@ h2::after {
   align-items: center;
   gap: 10px;
   padding: 10px 20px;
-  border-radius: 8px;
   font-size: 14px;
   font-weight: 600;
   letter-spacing: 0.02em;
@@ -651,9 +859,9 @@ h2::after {
   border: 1px solid var(--line-bright);
   background: rgba(10, 15, 24, 0.65);
   backdrop-filter: blur(14px);
+  clip-path: polygon(0 8px, 8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%);
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
-  overflow: hidden;
 }
 
 .social svg, .social .icon {
@@ -663,26 +871,25 @@ h2::after {
 }
 
 a.social:hover {
-  background: rgba(56, 189, 248, 0.15);
-  border-color: var(--cyan);
+  background: rgba(56, 189, 248, 0.18);
+  border-color: var(--accent-primary);
   color: #fff;
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0, 240, 255, 0.25);
+  box-shadow: 0 8px 24px var(--accent-glow);
   text-decoration: none;
 }
 
 .social.btn-sim-launch {
   background: linear-gradient(135deg, #1f5fbf 0%, #0284c7 100%);
-  border-color: var(--cyan);
+  border-color: var(--accent-primary);
   color: #fff;
   font-weight: 700;
-  box-shadow: 0 0 20px var(--cyan-glow);
+  box-shadow: 0 0 24px var(--accent-glow);
 }
 
 .social.btn-sim-launch:hover {
   background: linear-gradient(135deg, #2b74df 0%, #0369a1 100%);
-  box-shadow: 0 0 30px var(--cyan-glow);
-  transform: translateY(-2px);
+  box-shadow: 0 0 34px var(--accent-glow);
 }
 
 .donate-btn {
@@ -690,13 +897,12 @@ a.social:hover {
   color: #0f172a !important;
   border-color: #fde68a !important;
   font-weight: 700;
-  box-shadow: 0 0 20px var(--yellow-glow);
+  box-shadow: 0 0 20px var(--gold-glow);
 }
 
 a.donate-btn:hover {
-  filter: brightness(1.1);
-  box-shadow: 0 0 28px var(--yellow-glow);
-  transform: translateY(-2px);
+  filter: brightness(1.12);
+  box-shadow: 0 0 30px var(--gold-glow);
 }
 
 .social.soon {
@@ -742,8 +948,8 @@ a.donate-btn:hover {
 
 .sl-btn:hover {
   background: rgba(56, 189, 248, 0.2);
-  border-color: var(--cyan);
-  box-shadow: 0 0 12px var(--cyan-glow);
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 12px var(--accent-glow);
 }
 
 .sl-btn svg {
@@ -789,8 +995,8 @@ a.donate-btn:hover {
 .sl-dots button::after {
   right: auto;
   width: 0;
-  background: var(--cyan);
-  box-shadow: 0 0 8px var(--cyan);
+  background: var(--accent-primary);
+  box-shadow: 0 0 8px var(--accent-primary);
 }
 
 .sl-dots button[aria-current]::after {
@@ -814,7 +1020,7 @@ a.donate-btn:hover {
   white-space: nowrap;
   font-size: 13px;
   font-family: var(--mono-font);
-  color: var(--cyan);
+  color: var(--accent-primary);
   order: 2;
   background: rgba(10, 15, 24, 0.6);
   padding: 6px 14px;
@@ -826,7 +1032,7 @@ a.donate-btn:hover {
    INTERACTIVE TACTICAL RADAR SIMULATOR SECTION
    ========================================================================== */
 .sim-section {
-  padding-block: 80px 0;
+  padding-block: 84px 0;
   position: relative;
 }
 
@@ -835,7 +1041,7 @@ a.donate-btn:hover {
   border: 1px solid var(--line-bright);
   border-radius: 18px;
   overflow: hidden;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 30px rgba(0, 240, 255, 0.08);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 30px rgba(0, 240, 255, 0.1);
   position: relative;
 }
 
@@ -899,8 +1105,8 @@ a.donate-btn:hover {
 }
 
 .hud-val.highlight {
-  color: var(--yellow-tactical);
-  text-shadow: 0 0 10px var(--yellow-glow);
+  color: var(--gold-tactical);
+  text-shadow: 0 0 10px var(--gold-glow);
 }
 
 .grid-bar-wrap {
@@ -915,8 +1121,8 @@ a.donate-btn:hover {
 .grid-bar-fill {
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, var(--cyan), #3b82f6);
-  box-shadow: 0 0 8px var(--cyan);
+  background: linear-gradient(90deg, var(--accent-primary), #3b82f6);
+  box-shadow: 0 0 8px var(--accent-primary);
   transition: width 0.3s ease;
 }
 
@@ -956,7 +1162,7 @@ a.donate-btn:hover {
   border: 1px solid var(--line-dim);
   color: var(--fg-main);
   padding: 8px 16px;
-  border-radius: 8px;
+  border-radius: 6px;
   font-size: 13px;
   font-family: var(--mono-font);
   font-weight: 600;
@@ -968,16 +1174,16 @@ a.donate-btn:hover {
 }
 
 .w-btn:hover {
-  border-color: var(--blue-accent);
+  border-color: var(--accent-secondary);
   color: #fff;
   background: #162234;
 }
 
 .w-btn.active {
   background: linear-gradient(135deg, #0284c7, #1f5fbf);
-  border-color: var(--cyan);
+  border-color: var(--accent-primary);
   color: #fff;
-  box-shadow: 0 0 16px var(--cyan-glow);
+  box-shadow: 0 0 16px var(--accent-glow);
 }
 
 .sim-action-btns {
@@ -990,7 +1196,7 @@ a.donate-btn:hover {
   align-items: center;
   gap: 8px;
   padding: 8px 18px;
-  border-radius: 8px;
+  border-radius: 6px;
   border: 1px solid var(--line-bright);
   background: #111a28;
   color: #fff;
@@ -1003,13 +1209,13 @@ a.donate-btn:hover {
 
 .sim-ctrl-btn:hover {
   background: #1b283d;
-  border-color: var(--cyan);
+  border-color: var(--accent-primary);
 }
 
 .sim-ctrl-btn.active {
   background: linear-gradient(135deg, #10b981, #059669);
   border-color: #34d399;
-  box-shadow: 0 0 14px var(--emerald-glow);
+  box-shadow: 0 0 14px rgba(16, 185, 129, 0.45);
 }
 
 .sim-ctrl-btn.muted {
@@ -1020,7 +1226,7 @@ a.donate-btn:hover {
    ARSENAL HOLOGRAPHIC BLUEPRINT SECTION
    ========================================================================== */
 .arsenal-section {
-  padding-block: 80px 0;
+  padding-block: 84px 0;
 }
 
 .arsenal-grid {
@@ -1038,41 +1244,35 @@ a.donate-btn:hover {
 .weapon-blueprint-card {
   background: var(--bg-card);
   border: 1px solid var(--line-dim);
-  border-radius: 14px;
-  padding: 18px 20px;
+  clip-path: polygon(0 12px, 12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%);
+  padding: 20px 22px;
   cursor: pointer;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   backdrop-filter: blur(12px);
   position: relative;
-  overflow: hidden;
 }
 
-.weapon-blueprint-card::before {
+.weapon-blueprint-card:hover {
+  border-color: var(--accent-secondary);
+  background: var(--bg-card-hover);
+  transform: translateX(4px);
+}
+
+.weapon-blueprint-card.selected {
+  border-color: var(--accent-primary);
+  background: rgba(14, 25, 42, 0.95);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5), 0 0 20px var(--accent-glow);
+}
+
+.weapon-blueprint-card.selected::before {
   content: "";
   position: absolute;
   top: 0;
   left: 0;
   width: 4px;
   height: 100%;
-  background: transparent;
-  transition: background 0.2s;
-}
-
-.weapon-blueprint-card:hover {
-  border-color: var(--blue-accent);
-  background: var(--bg-card-hover);
-  transform: translateX(4px);
-}
-
-.weapon-blueprint-card.selected {
-  border-color: var(--cyan);
-  background: rgba(14, 25, 42, 0.95);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 240, 255, 0.15);
-}
-
-.weapon-blueprint-card.selected::before {
-  background: var(--cyan);
-  box-shadow: 0 0 10px var(--cyan);
+  background: var(--accent-primary);
+  box-shadow: 0 0 10px var(--accent-primary);
 }
 
 .weapon-blueprint-card h4 {
@@ -1091,8 +1291,8 @@ a.donate-btn:hover {
 .blueprint-inspector {
   background: var(--bg-surface);
   border: 1px solid var(--line-bright);
-  border-radius: 16px;
-  padding: 30px;
+  clip-path: polygon(0 16px, 16px 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%);
+  padding: 32px;
   display: grid;
   gap: 24px;
   align-content: start;
@@ -1107,14 +1307,14 @@ a.donate-btn:hover {
   right: 0;
   width: 140px;
   height: 140px;
-  background: radial-gradient(circle at top right, rgba(0, 240, 255, 0.15), transparent 70%);
+  background: radial-gradient(circle at top right, var(--accent-glow), transparent 70%);
   pointer-events: none;
 }
 
 .bp-tag {
   font-family: var(--mono-font);
   font-size: 11px;
-  color: var(--cyan);
+  color: var(--accent-primary);
   letter-spacing: 0.1em;
   font-weight: 700;
 }
@@ -1138,7 +1338,7 @@ a.donate-btn:hover {
   background: rgba(13, 20, 32, 0.8);
   border: 1px solid var(--line-dim);
   padding: 20px;
-  border-radius: 12px;
+  border-radius: 8px;
 }
 
 .bp-stat {
@@ -1166,7 +1366,7 @@ a.donate-btn:hover {
   color: var(--fg-main);
   background: rgba(15, 23, 42, 0.4);
   padding: 16px;
-  border-left: 3px solid var(--cyan);
+  border-left: 3px solid var(--accent-primary);
   border-radius: 0 8px 8px 0;
 }
 
@@ -1174,7 +1374,7 @@ a.donate-btn:hover {
    DISTRICT TELEMETRY & GRID STATUS SECTION
    ========================================================================== */
 .districts-section {
-  padding-block: 80px 0;
+  padding-block: 84px 0;
 }
 
 .district-cards-grid {
@@ -1187,8 +1387,8 @@ a.donate-btn:hover {
 .district-card {
   background: var(--bg-card);
   border: 1px solid var(--line-dim);
-  border-radius: 14px;
-  padding: 20px;
+  clip-path: polygon(0 12px, 12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%);
+  padding: 22px;
   display: grid;
   gap: 14px;
   backdrop-filter: blur(12px);
@@ -1197,7 +1397,7 @@ a.donate-btn:hover {
 
 .district-card:hover {
   transform: translateY(-3px);
-  border-color: var(--blue-accent);
+  border-color: var(--accent-secondary);
 }
 
 .district-card-header {
@@ -1224,13 +1424,13 @@ a.donate-btn:hover {
 .status-badge.online {
   background: rgba(16, 185, 129, 0.15);
   border: 1px solid rgba(16, 185, 129, 0.4);
-  color: var(--emerald-live);
+  color: #10b981;
 }
 
 .status-badge.alert {
   background: rgba(245, 158, 11, 0.15);
   border: 1px solid rgba(245, 158, 11, 0.4);
-  color: var(--yellow-tactical);
+  color: var(--gold-tactical);
 }
 
 .district-meta {
@@ -1253,7 +1453,7 @@ a.donate-btn:hover {
    ABOUT & SCALE FACTS SECTION
    ========================================================================== */
 .about {
-  padding-block: 80px 0;
+  padding-block: 84px 0;
 }
 
 .about p {
@@ -1273,19 +1473,18 @@ a.donate-btn:hover {
 .fact {
   background: var(--bg-card);
   border: 1px solid var(--line-dim);
-  border-radius: 14px;
+  clip-path: polygon(0 12px, 12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%);
   padding: 24px;
   display: grid;
   gap: 8px;
   backdrop-filter: blur(12px);
   position: relative;
-  overflow: hidden;
   transition: transform 0.2s, border-color 0.2s;
 }
 
 .fact:hover {
   transform: translateY(-3px);
-  border-color: var(--cyan);
+  border-color: var(--accent-primary);
 }
 
 .fact b {
@@ -1309,7 +1508,7 @@ a.donate-btn:hover {
    DEVELOPMENT NEWS SECTION
    ========================================================================== */
 .news {
-  padding-block: 80px 0;
+  padding-block: 84px 0;
 }
 
 .news-header-wrap {
@@ -1332,7 +1531,7 @@ a.donate-btn:hover {
   border: 1px solid var(--line-dim);
   color: var(--fg-muted);
   padding: 6px 14px;
-  border-radius: 8px;
+  border-radius: 6px;
   font-size: 13px;
   font-family: var(--mono-font);
   cursor: pointer;
@@ -1340,15 +1539,15 @@ a.donate-btn:hover {
 }
 
 .n-filter-btn:hover {
-  border-color: var(--blue-accent);
+  border-color: var(--accent-secondary);
   color: #fff;
 }
 
 .n-filter-btn.active {
-  background: var(--blue-primary);
-  color: #fff;
-  border-color: var(--cyan);
-  box-shadow: 0 0 12px var(--cyan-glow);
+  background: var(--accent-primary);
+  color: #05080d;
+  font-weight: 700;
+  box-shadow: 0 0 12px var(--accent-glow);
 }
 
 .news article {
@@ -1365,7 +1564,7 @@ a.donate-btn:hover {
 }
 
 .news time {
-  color: var(--cyan);
+  color: var(--accent-primary);
   font-size: 14px;
   font-family: var(--mono-font);
   font-variant-numeric: tabular-nums;
@@ -1383,7 +1582,7 @@ a.donate-btn:hover {
 }
 
 .news h3 a:hover {
-  color: var(--cyan);
+  color: var(--accent-primary);
 }
 
 .news p {
@@ -1401,14 +1600,14 @@ a.donate-btn:hover {
   margin-top: 12px;
   font-size: 14px;
   font-weight: 600;
-  color: var(--blue-accent);
+  color: var(--accent-secondary);
 }
 
 /* ==========================================================================
    GALLERY SECTION WITH TACTICAL RECON OVERLAYS
    ========================================================================== */
 .gallery-section {
-  padding-block: 80px 0;
+  padding-block: 84px 0;
 }
 
 .gallery {
@@ -1421,7 +1620,7 @@ a.donate-btn:hover {
 .gallery figure {
   margin: 0;
   position: relative;
-  border-radius: 14px;
+  border-radius: 12px;
   overflow: hidden;
   background: var(--bg-surface);
   border: 1px solid var(--line-dim);
@@ -1451,12 +1650,12 @@ a.donate-btn:hover {
   position: absolute;
   left: 16px;
   bottom: 16px;
-  background: rgba(7, 10, 15, 0.85);
+  background: rgba(7, 10, 15, 0.88);
   backdrop-filter: blur(8px);
   border: 1px solid var(--line-bright);
   color: #fff;
   padding: 6px 14px;
-  border-radius: 8px;
+  border-radius: 6px;
   font-size: 13px;
   font-family: var(--mono-font);
 }
@@ -1487,13 +1686,13 @@ a.donate-btn:hover {
 .lightbox-content img {
   width: 100%;
   height: auto;
-  border-radius: 14px;
+  border-radius: 12px;
   border: 1px solid var(--line-bright);
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.9), 0 0 30px rgba(0, 240, 255, 0.15);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.9), 0 0 30px var(--accent-glow);
 }
 
 .lightbox-content figcaption {
-  color: var(--cyan);
+  color: var(--accent-primary);
   text-align: center;
   margin-top: 16px;
   font-size: 16px;
@@ -1513,14 +1712,14 @@ a.donate-btn:hover {
 }
 
 .lightbox-close:hover {
-  color: var(--cyan);
+  color: var(--accent-primary);
 }
 
 /* ==========================================================================
    ROADMAP SECTION
    ========================================================================== */
 .roadmap {
-  padding-block: 80px 0;
+  padding-block: 84px 0;
 }
 
 .roadmap ol {
@@ -1539,7 +1738,7 @@ a.donate-btn:hover {
   column-gap: 16px;
   background: var(--bg-card);
   border: 1px solid var(--line-dim);
-  border-radius: 14px;
+  clip-path: polygon(0 12px, 12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%);
   padding: 20px 24px;
   align-items: center;
   backdrop-filter: blur(12px);
@@ -1560,16 +1759,16 @@ a.donate-btn:hover {
 }
 
 .roadmap li.now {
-  border-color: var(--cyan);
-  box-shadow: 0 0 24px rgba(0, 240, 255, 0.15);
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 24px var(--accent-glow);
   background: rgba(14, 25, 42, 0.85);
 }
 
 .roadmap li.now::before {
-  background: var(--cyan);
+  background: var(--accent-primary);
   color: #070a0f;
-  border-color: var(--cyan);
-  box-shadow: 0 0 12px var(--cyan);
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 12px var(--accent-primary);
 }
 
 .roadmap li span {
@@ -1579,16 +1778,36 @@ a.donate-btn:hover {
 
 .roadmap em {
   font-style: normal;
-  color: var(--cyan);
+  color: var(--accent-primary);
   font-weight: 600;
 }
 
 /* ==========================================================================
-   CREDITS & FOOTER
+   TELEMETRY COORDINATE FOOTER BAR & CREDITS
    ========================================================================== */
+.tactical-hud-dock {
+  position: fixed;
+  left: 20px;
+  bottom: 20px;
+  z-index: 35;
+  background: rgba(7, 10, 15, 0.88);
+  border: 1px solid var(--line-bright);
+  backdrop-filter: blur(12px);
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-family: var(--mono-font);
+  font-size: 11px;
+  color: var(--accent-primary);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+}
+
 .credits {
   margin-top: 100px;
-  padding-block: 40px 60px;
+  padding-block: 40px 80px;
   border-top: 1px solid var(--line-dim);
   color: var(--fg-dark);
   font-size: 13px;
@@ -1609,7 +1828,7 @@ a.donate-btn:hover {
 }
 
 .credits a:hover {
-  color: var(--cyan);
+  color: var(--accent-primary);
 }
 
 .to-top {
@@ -1624,7 +1843,7 @@ a.donate-btn:hover {
   border-radius: 50%;
   border: 1px solid var(--line-bright);
   background: rgba(10, 15, 24, 0.9);
-  color: var(--cyan);
+  color: var(--accent-primary);
   cursor: pointer;
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7);
   opacity: 0;
@@ -1640,9 +1859,9 @@ a.donate-btn:hover {
 }
 
 .to-top:hover {
-  background: var(--cyan);
+  background: var(--accent-primary);
   color: #070a0f;
-  box-shadow: 0 0 20px var(--cyan);
+  box-shadow: 0 0 20px var(--accent-primary);
 }
 
 /* Responsive adjustments */
@@ -1655,6 +1874,12 @@ a.donate-btn:hover {
     margin-right: 6px;
     width: 38px;
     height: 38px;
+  }
+  .tactical-hud-dock {
+    display: none;
+  }
+  .ticker-right {
+    display: none;
   }
   .arsenal-grid {
     grid-template-columns: 1fr;

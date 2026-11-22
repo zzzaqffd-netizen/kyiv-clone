@@ -43,6 +43,22 @@
     </symbol>
   </svg>
 
+  <!-- Top Live Radio Dispatch Ticker -->
+  <div class="radio-dispatch-ticker">
+    <div class="ticker-left">
+      <span class="ticker-badge">РАДІОЕФІР ОБОРОНИ</span>
+      <span class="ticker-text" id="ticker-text">[ПІВНІЧ-01] Виявлено групу шахедів над Вишгородом. Курс 180°, висота 120м. МВГ у бойовій готовності.</span>
+    </div>
+    <div class="ticker-right">
+      <div class="hud-mode-selector" title="Перемикач відеорежимів тактичного інтерфейсу">
+        <button type="button" class="hud-mode-btn active" data-hud="cyan">CYAN</button>
+        <button type="button" class="hud-mode-btn" data-hud="flir">FLIR NV</button>
+        <button type="button" class="hud-mode-btn" data-hud="amber">AMBER CRT</button>
+        <button type="button" class="hud-mode-btn" data-hud="stealth">STEALTH</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Topbar Header -->
   <header class="topbar over-hero">
     <div class="wrap topbar-in">
@@ -684,6 +700,12 @@
       <path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M12 19V5M5 12l7-7 7 7"/>
     </svg>
   </button>
+
+  <!-- Floating Tactical HUD Dock -->
+  <div class="tactical-hud-dock" aria-hidden="true">
+    <span class="ping-dot"></span>
+    <span id="tactical-coords-display">LAT: 50.4501° N | LON: 30.5234° E | GRID: 044-KYIV</span>
+  </div>
 
   <!-- Interactive Scripts -->
   <script src="game.js"></script>

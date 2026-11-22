@@ -1,11 +1,68 @@
 /**
- * Kyiv 2027 - Interactive UI & Atmosphere System
- * Handles topbar behavior, mobile navigation, hero carousel, weather/time modes,
- * arsenal inspector, gallery modal lightbox, and news filtering.
+ * Kyiv 2027 - Cyber-Tactical Command System & Interactivity
+ * Handles:
+ * - HUD Mode Switching (Cyan, FLIR Night Vision, Amber CRT, Stealth)
+ * - Live Radio Dispatch Ticker with simulated military voice feeds
+ * - Mouse GPS & Grid Coordinate Telemetry Tracking
+ * - Hero Carousel & Touch Gestures
+ * - Weather & Atmospheric Particle Simulation
+ * - Holographic Arsenal Blueprint Inspector
+ * - Modal Gallery Lightbox & News Filters
+ * - 3D Card Perspective Tilt
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-  // --- 1. Fixed Topbar on Scroll ---
+  // --- 1. HUD Visual Mode Switcher (Cyan, FLIR, Amber, Stealth) ---
+  const hudModeBtns = document.querySelectorAll('[data-hud]');
+  hudModeBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      hudModeBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const mode = btn.dataset.hud;
+      document.body.dataset.hudMode = mode;
+
+      // Notify radar simulator to adapt color theme
+      if (window.kyivSim && typeof window.kyivSim.setTheme === 'function') {
+        window.kyivSim.setTheme(mode);
+      }
+    });
+  });
+
+  // --- 2. Live Radio Dispatch Ticker Simulation ---
+  const tickerText = document.getElementById('ticker-text');
+  const dispatchFeeds = [
+    "[ПІВНІЧ-01] Виявлено групу шахедів над Вишгородом. Курс 180°, висота 120м. МВГ приведені в готовність.",
+    "[ЦЕНТР-ППО] МВГ-01 та МВГ-02 зайняли рубежі перехоплення вздовж русла Дніпра.",
+    "[ГЕПАРД-ПОДІЛ] Ціль захоплено радаром супроводу. Сектор Північний міст під прикриттям.",
+    "[ПАТРІОТ-03] Балістичний щит Києва активний. Радіус виявлення 160 км.",
+    "[ТЕЦ-5 ВИДУБИЧІ] Енергетичний вузол під подвійним захистом мобільних груп. Напруга в нормі.",
+    "[АКУСТИКА ЗВУК] Мережа сенсорів на дахах фіксує шум пропелера в квадраті Русанівка.",
+    "[КИЇВ ОБОРОНА] Усі 10 районів столиці: чергування вогневих груп 100%."
+  ];
+  let dispatchIdx = 0;
+
+  if (tickerText) {
+    setInterval(() => {
+      dispatchIdx = (dispatchIdx + 1) % dispatchFeeds.length;
+      tickerText.style.opacity = '0';
+      setTimeout(() => {
+        tickerText.textContent = dispatchFeeds[dispatchIdx];
+        tickerText.style.opacity = '1';
+      }, 250);
+    }, 6000);
+  }
+
+  // --- 3. Mouse GPS & Grid Coordinates Telemetry Tracking ---
+  const coordsDisplay = document.getElementById('tactical-coords-display');
+  if (coordsDisplay) {
+    window.addEventListener('mousemove', (e) => {
+      const lat = (50.4000 + (e.clientY / window.innerHeight) * 0.1000).toFixed(4);
+      const lon = (30.4500 + (e.clientX / window.innerWidth) * 0.1500).toFixed(4);
+      coordsDisplay.textContent = `LAT: ${lat}° N | LON: ${lon}° E | GRID: 044-KYIV`;
+    }, { passive: true });
+  }
+
+  // --- 4. Fixed Topbar on Scroll ---
   const topbar = document.querySelector('.topbar');
   const toTopBtn = document.querySelector('.to-top');
 
@@ -25,7 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // --- 2. Mobile Menu Toggle ---
+  // --- 5. Mobile Drawer Navigation ---
   const burger = document.querySelector('.burger');
   const mnav = document.getElementById('mnav');
 
@@ -60,7 +117,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // --- 3. Language Selector Dropdown ---
+  // --- 6. Language Selector Popover ---
   const langDetails = document.querySelector('details.lang');
   if (langDetails) {
     document.addEventListener('click', (e) => {
@@ -73,7 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // --- 4. Hero Carousel ---
+  // --- 7. Hero Carousel ---
   const hero = document.querySelector('.hero');
   const slides = document.querySelectorAll('.slide');
   const dotsContainer = document.querySelector('.sl-dots');
@@ -88,13 +145,12 @@ document.addEventListener('DOMContentLoaded', () => {
     let isPlaying = true;
     const intervalMs = 6500;
 
-    // Create dot buttons
     if (dotsContainer) {
       dotsContainer.innerHTML = '';
       slides.forEach((_, idx) => {
         const dot = document.createElement('button');
         dot.type = 'button';
-        dot.setAttribute('aria-label', `Слайд ${idx + 1}`);
+        dot.setAttribute('aria-label', `Кадр ${idx + 1}`);
         if (idx === 0) dot.setAttribute('aria-current', 'true');
         dot.addEventListener('click', () => goToSlide(idx));
         dotsContainer.appendChild(dot);
@@ -122,7 +178,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (hero) {
         hero.classList.remove('sl-tick');
-        void hero.offsetWidth; // trigger reflow
+        void hero.offsetWidth;
         hero.classList.add('sl-tick');
       }
     }
@@ -165,7 +221,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    // Touch swipe support
+    // Touch gestures
     let touchStartX = 0;
     let touchStartY = 0;
     if (hero) {
@@ -189,7 +245,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (hero) hero.classList.add('sl-ready');
   }
 
-  // --- 5. Interactive Atmosphere & Weather Simulation Mode ---
+  // --- 8. Atmospheric Weather Particle Engine ---
   const weatherBtns = document.querySelectorAll('[data-weather]');
   const atmosphericCanvas = document.getElementById('weather-canvas');
   let activeWeather = 'night';
@@ -204,16 +260,15 @@ document.addEventListener('DOMContentLoaded', () => {
     resizeWeather();
     window.addEventListener('resize', resizeWeather);
 
-    // Weather Particle System (Snow / Rain / Tracer Flares)
     function createWeatherParticles() {
       weatherParticles = [];
-      const count = activeWeather === 'winter' ? 80 : activeWeather === 'rain' ? 120 : 25;
+      const count = activeWeather === 'winter' ? 90 : activeWeather === 'rain' ? 140 : 30;
       for (let i = 0; i < count; i++) {
         weatherParticles.push({
           x: Math.random() * atmosphericCanvas.width,
           y: Math.random() * atmosphericCanvas.height,
-          vx: activeWeather === 'winter' ? (Math.random() - 0.5) * 1.5 : (Math.random() - 0.3) * 2,
-          vy: activeWeather === 'winter' ? Math.random() * 2 + 1 : Math.random() * 8 + 6,
+          vx: activeWeather === 'winter' ? (Math.random() - 0.5) * 1.5 : (Math.random() - 0.3) * 2.2,
+          vy: activeWeather === 'winter' ? Math.random() * 2 + 1 : Math.random() * 9 + 6,
           size: activeWeather === 'winter' ? Math.random() * 2.5 + 1 : 1.5,
           alpha: Math.random() * 0.6 + 0.2
         });
@@ -223,33 +278,31 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderWeather() {
       ctx.clearRect(0, 0, atmosphericCanvas.width, atmosphericCanvas.height);
 
-      if (activeWeather !== 'clear') {
-        for (const p of weatherParticles) {
-          p.x += p.vx;
-          p.y += p.vy;
+      for (const p of weatherParticles) {
+        p.x += p.vx;
+        p.y += p.vy;
 
-          if (p.y > atmosphericCanvas.height) {
-            p.y = -10;
-            p.x = Math.random() * atmosphericCanvas.width;
-          }
-          if (p.x < 0) p.x = atmosphericCanvas.width;
-          if (p.x > atmosphericCanvas.width) p.x = 0;
+        if (p.y > atmosphericCanvas.height) {
+          p.y = -10;
+          p.x = Math.random() * atmosphericCanvas.width;
+        }
+        if (p.x < 0) p.x = atmosphericCanvas.width;
+        if (p.x > atmosphericCanvas.width) p.x = 0;
 
+        if (activeWeather === 'rain') {
+          ctx.strokeStyle = `rgba(160, 220, 255, ${p.alpha * 0.7})`;
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(p.x, p.y);
+          ctx.lineTo(p.x + p.vx * 2, p.y + p.vy * 2);
+          ctx.stroke();
+        } else {
           ctx.fillStyle = activeWeather === 'winter'
             ? `rgba(255, 255, 255, ${p.alpha})`
-            : `rgba(160, 200, 255, ${p.alpha * 0.7})`;
-
+            : `rgba(0, 240, 255, ${p.alpha * 0.4})`;
           ctx.beginPath();
-          if (activeWeather === 'rain') {
-            ctx.strokeStyle = `rgba(160, 210, 255, ${p.alpha})`;
-            ctx.lineWidth = 1;
-            ctx.moveTo(p.x, p.y);
-            ctx.lineTo(p.x + p.vx * 2, p.y + p.vy * 2);
-            ctx.stroke();
-          } else {
-            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-            ctx.fill();
-          }
+          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+          ctx.fill();
         }
       }
 
@@ -270,7 +323,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // --- 6. Interactive Arsenal Blueprint Viewer ---
+  // --- 9. Holographic Arsenal Blueprint Viewer ---
   const arsenalCards = document.querySelectorAll('.weapon-blueprint-card');
   const blueprintDisplay = document.getElementById('blueprint-inspector');
 
@@ -296,7 +349,7 @@ document.addEventListener('DOMContentLoaded', () => {
     patriot: {
       title: 'MIM-104 Patriot PAC-3',
       subtitle: 'Зенітно-ракетний комплекс великої дальності • Фазована антенна решітка AN/MPQ-65',
-      role: 'Знищення балістичних ракет «Іскандер-М», «Кинджал» та надзвукових крилатих ракет «Х-101» на підступах до Києва.',
+      role: 'Знищення балістичних ракет «Іскандер-М», «Кинджал» та надзвукових крилатих ракет на підступах до Києва.',
       range: '60 - 160 км',
       rate: 'Залп 4-16 ракет',
       readiness: 'Цілодобове чергування',
@@ -340,7 +393,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // --- 7. Modal Gallery Lightbox ---
+  // --- 10. Modal Gallery Lightbox ---
   const galleryItems = document.querySelectorAll('.gallery figure');
   const lightbox = document.getElementById('gallery-lightbox');
   const lightboxImg = document.getElementById('lightbox-img');
@@ -374,7 +427,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // --- 8. News Filter Tags ---
+  // --- 11. News Category Filter ---
   const filterButtons = document.querySelectorAll('[data-news-filter]');
   const newsArticles = document.querySelectorAll('.news article');
 
@@ -395,4 +448,21 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
   }
+
+  // --- 12. 3D Card Perspective Tilt Effect ---
+  const tiltCards = document.querySelectorAll('.weapon-blueprint-card, .district-card, .kpi-pill');
+  tiltCards.forEach(card => {
+    card.addEventListener('mousemove', (e) => {
+      const rect = card.getBoundingClientRect();
+      const x = e.clientX - rect.left - rect.width / 2;
+      const y = e.clientY - rect.top - rect.height / 2;
+      const rotX = -(y / (rect.height / 2)) * 6;
+      const rotY = (x / (rect.width / 2)) * 6;
+      card.style.transform = `perspective(800px) rotateX(${rotX.toFixed(2)}deg) rotateY(${rotY.toFixed(2)}deg) translateY(-2px)`;
+    });
+
+    card.addEventListener('mouseleave', () => {
+      card.style.transform = '';
+    });
+  });
 });
